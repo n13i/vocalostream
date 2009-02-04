@@ -111,24 +111,40 @@ sub fetch_nicovideo
 
     printf "checking tags ...\n";
     my $tag_found = 0;
-    my $tags;
+    my @tags = ();
     if(ref($x->{thumb}->{tags}) eq 'ARRAY')
     {
         foreach my $d (@{$x->{thumb}->{tags}})
         {
             printf "  domain: %s\n", $d->{domain};
-            if($d->{domain} eq 'jp')
+            if(ref($d->{tag}) eq 'ARRAY')
             {
-                $tags = $d->{tag};
-                last;
+                foreach(@{$d->{tag}})
+                {
+                    push(@tags, $_);
+                }
+            }
+            else
+            {
+                push(@tags, $d->{tag});
             }
         }
     }
     else
     {
-        $tags = $x->{thumb}->{tags}->{tag};
+        if(ref($x->{thumb}->{tags}->{tag}) eq 'ARRAY')
+        {
+            foreach(@{$x->{thumb}->{tags}->{tag}})
+            {
+                push(@tags, $_);
+            }
+        }
+        else
+        {
+            push(@tags, $x->{thumb}->{tags}->{tag});
+        }
     }
-    foreach my $tag (@{$tags})
+    foreach my $tag (@tags)
     {
         my $t = $tag;
         if(ref($tag) eq 'HASH')
