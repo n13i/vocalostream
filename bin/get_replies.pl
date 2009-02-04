@@ -22,6 +22,7 @@ my $twit = Net::Twitter->new(
     password => $conf->{twitter}->{password},
 );
 
+print "==> replies:\n";
 my $replies = $twit->replies;
 
 my $sth = $dbh->prepare(
