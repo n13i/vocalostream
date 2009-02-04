@@ -30,7 +30,7 @@ my $sth = $dbh->prepare(
     'VALUES (?, ?, ?, ?, ?, ?)'
 );
 $dbh->begin_work;
-foreach my $r (@{$replies})
+foreach my $r (reverse @{$replies})
 {
     printf "%s: %s\n", $r->{user}->{screen_name}, $r->{text};
 
