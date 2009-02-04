@@ -29,7 +29,7 @@ my $twit = Net::Twitter->new(
     password => $conf->{twitter}->{password},
 );
 
-my $cookie_jar = HTTP::Cookies->new(file => $Bin . '/../data/cookies.txt', autosave => 1);
+my $cookie_jar = HTTP::Cookies->new(file => $conf->{dirs}->{data} . '/cookies.txt', autosave => 1);
 my $nv = WWW::NicoVideo::Download->new(
     email => $conf->{nicovideo}->{email},
     password => $conf->{nicovideo}->{password},
