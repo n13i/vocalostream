@@ -36,7 +36,9 @@ if(!defined($program))
 printf "%s/%s\n", $conf->{dirs}->{songs}, $program->{filename};
 
 binmode STDERR, ':encoding(utf8)';
+printf STDERR "%s\n", "-" x 78;
 printf STDERR "Now playing: [%d] %s\n", $program->{id}, $program->{title};
+printf STDERR "%s\n", "-" x 78;
 
 exit;
 
