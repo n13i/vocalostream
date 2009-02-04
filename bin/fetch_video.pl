@@ -154,7 +154,7 @@ sub fetch_nicovideo
     }
 
     my $file_source = sprintf "%s/%s", $conf->{dirs}->{sources}, $video_id;
-    printf "%s\n", $file_source;
+    printf "source: %s\n", $file_source;
     if(!-f $file_source)
     {
         printf "downloading ...\n";
@@ -172,7 +172,7 @@ sub fetch_nicovideo
     my $file_song = sprintf "%s/%s", $conf->{dirs}->{songs}, $filename_song;
     my $title = sprintf "%s (%s)", $x->{thumb}->{title}, $video_id;
 
-    printf "converting ...\n";
+    printf "converting %s ...\n", $title;
     my ($out, $err);
     if($video_id =~ /^nm/)
     {
