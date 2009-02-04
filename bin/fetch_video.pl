@@ -14,6 +14,7 @@ use WWW::NicoVideo::Download;
 use HTTP::Cookies;
 use XML::Simple;
 use IPC::Run qw(run timeout);
+use Encode;
 
 binmode STDOUT, ':encoding(utf8)';
 
@@ -178,13 +179,13 @@ sub fetch_nicovideo
         run ["cat", $file_source], '|',
             ["$Bin/cws2fws.pl"], '|',
             [$conf->{cmds}->{ffmpeg}, '-i', '-', '-vn', '-f', 'wav', '-'], '|',
-            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', '6', '-o', $file_song, '-'],
+            [$conf->{cmds}->{oggenc}, '-t', encode('utf8', $title), '-q', '6', '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
     }
     else
     {
         run [$conf->{cmds}->{ffmpeg}, '-i', $file_source, '-vn', '-f', 'wav', '-'], '|',
-            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', '6', '-o', $file_song, '-'],
+            [$conf->{cmds}->{oggenc}, '-t', encode('utf8', $title), '-q', '6', '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
     }
     print $err;
