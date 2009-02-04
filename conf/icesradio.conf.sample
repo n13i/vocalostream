@@ -1,0 +1,14 @@
+twitter:
+  username:
+  password:
+nicovideo:
+  email:
+  password:
+db: db/icesradio.db
+dirs:
+  sources: files/sources
+  songs: files/songs
+cmds:
+  ffmpeg: ffmpeg
+  oggenc: oggenc
+# vim: ts=2:filetype=yaml

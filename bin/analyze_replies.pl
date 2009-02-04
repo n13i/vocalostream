@@ -13,7 +13,7 @@ binmode STDOUT, ':encoding(utf8)';
 my $conf = &load_config;
 
 my $dbh = DBI->connect(
-    'dbi:SQLite:dbname=' . $Bin . '/../' . $conf->{db},
+    'dbi:SQLite:dbname=' . $conf->{db},
     '', '', {unicode => 1}
 );
 
@@ -81,7 +81,7 @@ $dbh->commit;
 
 sub load_config
 {
-    my $conffile = shift || $Bin . '/../conf/vcfm.conf';
+    my $conffile = shift || $Bin . '/../conf/icesradio.conf';
 
     open FH, '<:encoding(utf8)', $conffile or return undef;
     my $yaml = join('', <FH>);

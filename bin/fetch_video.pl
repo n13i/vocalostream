@@ -13,7 +13,6 @@ use DBD::SQLite;
 use WWW::NicoVideo::Download;
 use HTTP::Cookies;
 use XML::Simple;
-#use FFmpeg::Command;
 use IPC::Run qw(run timeout);
 
 binmode STDOUT, ':encoding(utf8)';
@@ -21,7 +20,7 @@ binmode STDOUT, ':encoding(utf8)';
 my $conf = &load_config;
 
 my $dbh = DBI->connect(
-    'dbi:SQLite:dbname=' . $Bin . '/../' . $conf->{db},
+    'dbi:SQLite:dbname=' . $conf->{db},
     '', '', {unicode => 1}
 );
 
@@ -76,25 +75,6 @@ foreach my $f (@files)
 }
 $sth->finish; undef $sth;
 
-#my $sth = $dbh->prepare(
-#    'INSERT OR IGNORE INTO replies ' .
-#    '(status_id, text, user_id, user_name, user_screen_name, created_at) ' .
-#    'VALUES (?, ?, ?, ?, ?, ?)'
-#);
-#$dbh->begin_work;
-#foreach my $r (@{$replies})
-#{
-#    $sth->execute(
-#        $r->{id},
-#        $r->{text},
-#        $r->{user}->{id},
-#        $r->{user}->{name},
-#        $r->{user}->{screen_name},
-#        $r->{created_at},
-#    );
-#}
-#$sth->finish; undef $sth;
-#$dbh->commit;
 
 sub fetch_nicovideo
 {
@@ -172,9 +152,11 @@ sub fetch_nicovideo
         return undef;
     }
 
-    my $file_source = 'files/song-sources/' . $video_id;
+    my $file_source = sprintf "%s/%s", $conf->{dirs}->{sources}, $video_id;
+    printf "%s\n", $file_source;
     if(!-f $file_source)
     {
+        printf "downloading ...\n";
         $nv->download($video_id, $file_source);
     }
     if(!-f $file_source || -z $file_source)
@@ -186,16 +168,26 @@ sub fetch_nicovideo
 #        ["grep", "-E", "(perl|PID)"], "|", ["grep", "-v", "grep"], ">", \&capture_out, timeout(5) or die "pipe command: $?";
 
     my $filename_song = $video_id . '.ogg';
-    my $file_song = 'files/songs/' . $filename_song;
+    my $file_song = sprintf "%s/%s", $conf->{dirs}->{songs}, $filename_song;
     my $title = sprintf "%s (%s)", $x->{thumb}->{title}, $video_id;
+
+    printf "converting ...\n";
+    my ($out, $err);
     if($video_id =~ /^nm/)
     {
-        `$Bin/cws2fws.pl < $file_source | ffmpeg -i - -vn -f wav - | oggenc -t "$title" -q 6 -o $file_song -`;
+        run ["cat", $file_source], '|',
+            ["$Bin/cws2fws.pl"], '|',
+            [$conf->{cmds}->{ffmpeg}, '-i', '-', '-vn', '-f', 'wav', '-'], '|',
+            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', '6', '-o', $file_song, '-'],
+            \$out, \$err, timeout(300) or die "$?";
     }
     else
     {
-        `ffmpeg -i $file_source -vn -f wav - | oggenc -t "$title" -q 6 -o $file_song -`;
+        run [$conf->{cmds}->{ffmpeg}, '-i', $file_source, '-vn', '-f', 'wav', '-'], '|',
+            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', '6', '-o', $file_song, '-'],
+            \$out, \$err, timeout(300) or die "$?";
     }
+    print $err;
     if(!-f $file_song)
     {
         return undef;
@@ -211,7 +203,7 @@ sub fetch_nicovideo
 
 sub load_config
 {
-    my $conffile = shift || $Bin . '/../conf/vcfm.conf';
+    my $conffile = shift || $Bin . '/../conf/icesradio.conf';
 
     open FH, '<:encoding(utf8)', $conffile or return undef;
     my $yaml = join('', <FH>);
