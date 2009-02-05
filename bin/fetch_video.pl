@@ -85,7 +85,7 @@ sub fetch_nicovideo
     my $res = $nv->user_agent->get(
         'http://www.nicovideo.jp/api/getthumbinfo/' . $video_id
     );
-    if(!$res->is_success)
+    if($res->is_error)
     {
         warn "get api failed";
         return undef;
@@ -185,7 +185,7 @@ sub fetch_nicovideo
 
     my $filename_song = $video_id . '.ogg';
     my $file_song = sprintf "%s/%s", $conf->{dirs}->{songs}, $filename_song;
-    my $title = sprintf "%s (%s)", $x->{thumb}->{title}, $video_id;
+    my $title = sprintf "%s http://www.nicovideo.jp/watch/%s", $x->{thumb}->{title}, $video_id;
 
     printf "converting %s ...\n", $title;
     my ($out, $err);
