@@ -118,6 +118,8 @@ sub fetch_nicovideo
 
     #print Dump($x);
 
+    # タグの存在をチェック
+
     printf "checking tags ...\n";
     my $tag_found = 0;
     my @tags = ();
@@ -153,6 +155,7 @@ sub fetch_nicovideo
             push(@tags, $x->{thumb}->{tags}->{tag});
         }
     }
+    my $tagcheck_expr = $conf->{tagcheck_expr};
     foreach my $tag (@tags)
     {
         my $t = $tag;
@@ -165,7 +168,7 @@ sub fetch_nicovideo
         {
             printf "    %s\n", $t;
         }
-        if($t =~ /オリジナル曲$/)
+        if($t =~ /$tagcheck_expr/i)
         {
             $tag_found = 1;
         }
@@ -189,9 +192,6 @@ sub fetch_nicovideo
         return undef;
     }
 
-#    run ["ffmpeg", "-i", "$file_source", "-vn", "-f", "wav", "-"], "|",
-#        ["grep", "-E", "(perl|PID)"], "|", ["grep", "-v", "grep"], ">", \&capture_out, timeout(5) or die "pipe command: $?";
-
     my $filename_song = $video_id . '.ogg';
     my $file_song = sprintf "%s/%s", $conf->{dirs}->{songs}, $filename_song;
     my $title = sprintf "%s (from http://www.nicovideo.jp/watch/%s)", $x->{thumb}->{title}, $video_id;
@@ -202,14 +202,30 @@ sub fetch_nicovideo
     {
         run ["cat", $file_source], '|',
             ["$Bin/cws2fws.pl"], '|',
-            [$conf->{cmds}->{ffmpeg}, '-i', '-', '-vn', '-ac', 2, '-f', 'wav', '-'], '|',
-            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', $conf->{converter}->{quality}, '-o', $file_song, '-'],
+            [$conf->{cmds}->{ffmpeg},
+             '-i', '-',
+             '-vn',
+             '-ac', 2,
+             '-f', 'wav',
+             '-'], '|',
+            [$conf->{cmds}->{oggenc},
+             '-t', $title,
+             '-q', $conf->{converter}->{quality},
+             '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
     }
     else
     {
-        run [$conf->{cmds}->{ffmpeg}, '-i', $file_source, '-vn', '-ac', 2, '-f', 'wav', '-'], '|',
-            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', $conf->{converter}->{quality}, '-o', $file_song, '-'],
+        run [$conf->{cmds}->{ffmpeg},
+             '-i', $file_source,
+             '-vn',
+             '-ac', 2,
+             '-f', 'wav',
+             '-'], '|',
+            [$conf->{cmds}->{oggenc},
+             '-t', $title,
+             '-q', $conf->{converter}->{quality},
+             '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
     }
     print $err;
