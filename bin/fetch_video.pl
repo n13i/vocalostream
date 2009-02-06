@@ -202,14 +202,14 @@ sub fetch_nicovideo
     {
         run ["cat", $file_source], '|',
             ["$Bin/cws2fws.pl"], '|',
-            [$conf->{cmds}->{ffmpeg}, '-i', '-', '-vn', '-f', 'wav', '-'], '|',
-            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', $conf->{convert}->{quality}, '-o', $file_song, '-'],
+            [$conf->{cmds}->{ffmpeg}, '-i', '-', '-vn', '-ac', 2, '-f', 'wav', '-'], '|',
+            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', $conf->{converter}->{quality}, '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
     }
     else
     {
-        run [$conf->{cmds}->{ffmpeg}, '-i', $file_source, '-vn', '-f', 'wav', '-'], '|',
-            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', '6', '-o', $file_song, '-'],
+        run [$conf->{cmds}->{ffmpeg}, '-i', $file_source, '-vn', '-ac', 2, '-f', 'wav', '-'], '|',
+            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', $conf->{converter}->{quality}, '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
     }
     print $err;
