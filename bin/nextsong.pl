@@ -17,6 +17,11 @@ my $dbh = DBI->connect(
     '', '', {unicode => 1}
 );
 
+my $twit = Net::Twitter->new(
+    username => $conf->{twitter}->{username},
+    password => $conf->{twitter}->{password},
+);
+
 my $sth;
 my $program = undef;
 
@@ -40,6 +45,10 @@ printf STDERR "%s\n", "-" x 78;
 printf STDERR "Now playing: [%d] %s\n", $program->{id}, $program->{title};
 printf STDERR "%s\n", "-" x 78;
 
+my $post = sprintf '\x{266b} %s %s',
+    $program->{title}, $program->{url};
+$twit->update(encode('utf8', $post));
+
 exit;
 
 
@@ -61,6 +70,7 @@ sub get_program
         ') AND type = 0'
     );
 
+    # デフォルトプレイリスト以外はランダム再生しない(順に消化)
     my $sql_order = 'ORDER BY programs.id';
     if($type == 0 && $conf->{playlist}->{random} == 1)
     {
