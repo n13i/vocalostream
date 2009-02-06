@@ -82,6 +82,15 @@ sub fetch_nicovideo
 
     printf "[%s]\n", $video_id;
 
+    foreach(@{$conf->{nglist}})
+    {
+        if($video_id =~ /^$_$/i)
+        {
+            warn "$video_id is in NGlist, skip.";
+            return undef;
+        }
+    }
+
     my $res = $nv->user_agent->get(
         'http://www.nicovideo.jp/api/getthumbinfo/' . $video_id
     );
