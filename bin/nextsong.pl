@@ -48,7 +48,7 @@ printf STDERR "%s\n", "-" x 78;
 
 if($conf->{twitter}->{post_enable} == 1)
 {
-    my $post = sprintf '\x{266b} %s %s',
+    my $post = sprintf "\x{266b} %s %s",
         $program->{title}, $program->{url};
     $twit->update(encode('utf8', $post));
 }
