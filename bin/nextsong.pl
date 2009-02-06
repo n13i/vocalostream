@@ -45,7 +45,7 @@ printf STDERR "%s\n", "-" x 78;
 printf STDERR "Now playing: [%d] %s\n", $program->{id}, $program->{title};
 printf STDERR "%s\n", "-" x 78;
 
-if($conf->{twitter}->{enable_post} == 1)
+if($conf->{twitter}->{post_enable} == 1)
 {
     my $post = sprintf '\x{266b} %s %s',
         $program->{title}, $program->{url};
