@@ -168,6 +168,7 @@ sub fetch_nicovideo
         {
             printf "    %s\n", $t;
         }
+        $t =~ tr/Ａ-Ｚａ-ｚ/A-Za-z/;
         if($t =~ /$tagcheck_expr/i)
         {
             $tag_found = 1;
