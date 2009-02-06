@@ -8,7 +8,15 @@ $in = STDIN;
 
 read $in,$header,8;
 
-die 'not CWS' if $header !~ /^CWS/;
+if ($header !~ /^CWS/)
+{
+    undef $/;
+    $buffer = <$in>;
+    $out = STDOUT;
+    print $out $header;
+    print $out $buffer;
+    exit;
+}
 
 undef $/; # enable slurp mode
 $buffer = <$in>;
