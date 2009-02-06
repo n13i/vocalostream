@@ -45,9 +45,12 @@ printf STDERR "%s\n", "-" x 78;
 printf STDERR "Now playing: [%d] %s\n", $program->{id}, $program->{title};
 printf STDERR "%s\n", "-" x 78;
 
-my $post = sprintf '\x{266b} %s %s',
-    $program->{title}, $program->{url};
-$twit->update(encode('utf8', $post));
+if($conf->{twitter}->{enable_post} == 1)
+{
+    my $post = sprintf '\x{266b} %s %s',
+        $program->{title}, $program->{url};
+    $twit->update(encode('utf8', $post));
+}
 
 exit;
 
