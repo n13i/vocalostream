@@ -7,6 +7,7 @@ use FindBin qw($Bin);
 use Net::Twitter;
 use YAML;
 use DBD::SQLite;
+use Encode;
 
 binmode STDOUT, ':encoding(utf8)';
 
