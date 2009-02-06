@@ -203,7 +203,7 @@ sub fetch_nicovideo
         run ["cat", $file_source], '|',
             ["$Bin/cws2fws.pl"], '|',
             [$conf->{cmds}->{ffmpeg}, '-i', '-', '-vn', '-f', 'wav', '-'], '|',
-            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', '6', '-o', $file_song, '-'],
+            [$conf->{cmds}->{oggenc}, '-t', $title, '-q', $conf->{convert}->{quality}, '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
     }
     else
