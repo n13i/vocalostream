@@ -60,6 +60,13 @@ sub get_program
         '  END ' .
         ') AND type = 0'
     );
+
+    my $sql_order = 'ORDER BY programs.id';
+    if($type == 0 && $conf->{playlist}->{random} == 1)
+    {
+        $sql_order = 'ORDER BY RANDOM()';
+    }
+
     my $sth = $dbh->prepare(
         'SELECT programs.id as id, file_id, type, played, ' .
         '       url, title, filename ' .
@@ -67,7 +74,7 @@ sub get_program
         'LEFT JOIN files ON programs.file_id = files.id ' .
         'WHERE files.filename IS NOT NULL AND programs.played = 0 ' .
         'AND type = ? ' .
-        'ORDER BY programs.id LIMIT 1'
+        $sql_order . ' LIMIT 1'
     );
     $sth->execute($type);
     my $row = $sth->fetchrow_hashref;
