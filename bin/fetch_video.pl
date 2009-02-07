@@ -77,6 +77,7 @@ foreach my $f (@files)
 $sth->finish; undef $sth;
 
 $dbh->do('DELETE FROM programs WHERE file_id IN (SELECT id FROM files WHERE filename IS NULL)');
+$dbh->do('DELETE FROM files WHERE filename IS NULL');
 
 
 sub fetch_nicovideo
