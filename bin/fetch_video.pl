@@ -111,7 +111,8 @@ sub fetch_nicovideo
     }
 
     $x->{thumb}->{title} = decode_entities($x->{thumb}->{title});
-
+    printf "%s\n", $x->{thumb}->{title};
+ 
     if($x->{thumb}->{embeddable} == 0)
     {
         return {
