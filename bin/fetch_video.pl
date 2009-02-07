@@ -14,6 +14,7 @@ use WWW::NicoVideo::Download;
 use HTTP::Cookies;
 use XML::Simple;
 use IPC::Run qw(run timeout);
+use HTML::Entities;
 
 binmode STDOUT, ':encoding(utf8)';
 
@@ -106,6 +107,8 @@ sub fetch_nicovideo
     {
         return { status => $x->{status} };
     }
+
+    $x->{thumb}->{title} = decode_entities($x->{thumb}->{title});
 
     if($x->{thumb}->{embeddable} == 0)
     {
