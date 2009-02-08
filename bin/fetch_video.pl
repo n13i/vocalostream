@@ -56,7 +56,7 @@ my $n = 0;
 foreach my $f (@files)
 {
     $n++;
-    printf "[%d/%d]\n", $n, ($#files+1);
+    printf "[%d/%d] %d: %s\n", $n, ($#files+1), $f->{id}, $f->{url};
 
     if($f->{url} =~ m{^http://www\.nicovideo\.jp/watch/(\w{2}\d+)$})
     {
