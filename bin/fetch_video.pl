@@ -128,7 +128,6 @@ sub fetch_nicovideo
     # タグの存在をチェック
 
     printf "checking tags ...\n";
-    my $tag_found = 0;
     my @tags = ();
     if(ref($x->{thumb}->{tags}) eq 'ARRAY')
     {
@@ -162,7 +161,11 @@ sub fetch_nicovideo
             push(@tags, $x->{thumb}->{tags}->{tag});
         }
     }
-    my $tagcheck_expr = $conf->{tagcheck_expr};
+
+    my @check_tags = (
+        { expr => $conf->{tagcheck_expr}, found => 0 },
+        { expr => '^音楽$', found => 0 },
+    );
     foreach my $tag (@tags)
     {
         my $t = $tag;
@@ -176,15 +179,28 @@ sub fetch_nicovideo
             printf "    %s\n", $t;
         }
         $t =~ tr/Ａ-Ｚａ-ｚ/A-Za-z/;
-        if($t =~ /$tagcheck_expr/i)
+        foreach(@check_tags)
         {
-            $tag_found = 1;
+            my $expr = $_->{expr};
+            if($t =~ /$expr/i)
+            {
+                $_->{found} = 1;
+            }
         }
     }
 
-    if($tag_found == 0)
+    my $tags_found = 1;
+    foreach(@check_tags)
     {
-        warn "original tag not found";
+        if($_->{found} == 0)
+        {
+            $tags_found = 0;
+        }
+    }
+
+    if($tags_found == 0)
+    {
+        warn "required tags not found";
         return undef;
     }
 
