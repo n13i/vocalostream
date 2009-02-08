@@ -49,12 +49,13 @@ while(my $row = $sth->fetchrow_hashref)
 $sth->finish; undef $sth;
 
 $sth = $dbh->prepare(
-    'UPDATE files SET title = ?, filename = ? WHERE id = ?'
+    'UPDATE files SET title = ?, filename = ?, try = try + 1 WHERE id = ?'
 );
 foreach my $f (@files)
 {
     if($f->{url} =~ m{^http://www\.nicovideo\.jp/watch/(\w{2}\d+)$})
     {
+        my $result = 0;
         my $res = &fetch_nicovideo($1);
         print Dump($res);
         if(defined($res))
@@ -63,34 +64,50 @@ foreach my $f (@files)
             {
                 if($res->{embeddable} == 1)
                 {
-                    $sth->execute(
-                        $res->{title},
-                        $res->{filename},
-                        $f->{id},
-                    );
+                    $result = 1;
                     sleep 5
                 }
             }
+        }
+
+        if($result == 1)
+        {
+            $sth->execute(
+                $res->{title},
+                $res->{filename},
+                $f->{id},
+            );
+        }
+        else
+        {
+            $sth->execute(
+                undef,
+                undef,
+                $f->{id},
+            );
         }
     }
 }
 $sth->finish; undef $sth;
 
-$dbh->do('DELETE FROM programs WHERE file_id IN (SELECT id FROM files WHERE filename IS NULL)');
-$dbh->do('DELETE FROM files WHERE filename IS NULL');
+$dbh->do(
+    'DELETE FROM programs WHERE file_id IN ' .
+    '(SELECT id FROM files WHERE filename IS NULL AND try >= 3)'
+);
+$dbh->do('DELETE FROM files WHERE filename IS NULL AND try >= 3');
 
 
 sub fetch_nicovideo
 {
     my $video_id = shift || return undef;
 
-    printf "[%s]\n", $video_id;
+    printf "target: %s\n", $video_id;
 
     foreach(@{$conf->{nglist}})
     {
         if($video_id =~ /^$_$/i)
         {
-            warn "$video_id is in NGlist, skip.";
+            printf "ERROR: $video_id is in NGlist, skip.\n";
             return undef;
         }
     }
@@ -100,7 +117,7 @@ sub fetch_nicovideo
     );
     if($res->is_error)
     {
-        warn "get api failed";
+        printf "ERROR: get api failed\n";
         return undef;
     }
 
@@ -108,6 +125,7 @@ sub fetch_nicovideo
     my $x = $xs->XMLin($res->decoded_content);
     if($x->{status} ne 'ok')
     {
+        printf "ERROR: status NG\n";
         return { status => $x->{status} };
     }
 
@@ -116,6 +134,7 @@ sub fetch_nicovideo
  
     if($x->{thumb}->{embeddable} == 0)
     {
+        printf "ERROR: not embeddable\n";
         return {
             status => $x->{status},
             embeddable => $x->{thumb}->{embeddable},
@@ -200,7 +219,7 @@ sub fetch_nicovideo
 
     if($tags_found == 0)
     {
-        printf "required tags not found\n";
+        printf "ERROR: required tags not found\n";
         return undef;
     }
 
@@ -216,7 +235,7 @@ sub fetch_nicovideo
     }
     if(!-f $file_source || -z $file_source)
     {
-        printf "missing source file\n";
+        printf "ERROR: missing source file\n";
         return undef;
     }
 
@@ -260,6 +279,7 @@ sub fetch_nicovideo
     print $err;
     if(!-f $file_song)
     {
+        printf "ERROR: failed to convert\n";
         return undef;
     }
 
@@ -267,6 +287,7 @@ sub fetch_nicovideo
     run [$conf->{cmds}->{vorbisgain}, $file_song],
         \$out, \$err, timeout(300) or die "$?";
 
+    printf "done.\n";
     return {
         status => $x->{status},
         embeddable => $x->{thumb}->{embeddable},
