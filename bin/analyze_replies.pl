@@ -7,6 +7,8 @@ use FindBin qw($Bin);
 use Net::Twitter;
 use YAML;
 use DBD::SQLite;
+use LWP::UserAgent;
+use HTTP::Status;
 
 binmode STDOUT, ':encoding(utf8)';
 
@@ -14,6 +16,10 @@ my $conf = &load_config;
 
 my $dbh = DBI->connect(
     'dbi:SQLite:dbname=' . $conf->{db},
+    '', '', {unicode => 1}
+);
+my $dbh_tinyurl = DBI->connect(
+    'dbi:SQLite:dbname=' . $conf->{tinyurl}->{db},
     '', '', {unicode => 1}
 );
 
@@ -35,19 +41,32 @@ while(my $row = $sth->fetchrow_hashref)
 }
 $sth->finish; undef $sth;
 
-foreach(@updates)
+foreach my $s (@updates)
 {
-    printf "%s\n", $_->{text};
+    printf "%s\n", $s->{text};
 
-    if($_->{text} =~ m{((?:sm|nm)\d+)})
+    my $tinyurl_expr = $conf->{tinyurl}->{expr};
+    my @tinyurls = $s->{text} =~ m{($tinyurl_expr)}sg;
+    foreach(@tinyurls)
     {
-        $_->{url} = 'http://www.nicovideo.jp/watch/' . $1;
-        $_->{state} = 1;
-        printf "  got video: %s\n", $_->{url};
+        print $_ . " -> ";
+        my $expanded = &expand_tinyurl($_);                                             if(defined($expanded))
+        {
+            print $expanded;
+            $s->{text} =~ s#$_#$expanded#g;
+        }
+        print "\n";
+    }
+
+    if($s->{text} =~ m{((?:sm|nm)\d+)})
+    {
+        $s->{url} = 'http://www.nicovideo.jp/watch/' . $1;
+        $s->{state} = 1;
+        printf "  got video: %s\n", $s->{url};
     }    
     else
     {
-        $_->{state} = -1;
+        $s->{state} = -1;
     }
 }
 
@@ -89,5 +108,37 @@ sub load_config
 
     my $conf = YAML::Load($yaml) or return undef;
     return $conf;
+}
+
+sub expand_tinyurl
+{
+    my $tinyurl = shift || return undef;
+
+    my $hashref = $dbh_tinyurl->selectrow_hashref(
+        "SELECT url FROM tinyurl WHERE tiny = '" . $tinyurl . "' LIMIT 1"
+    );
+    if(defined($hashref->{url}))
+    {
+        return $hashref->{url};
+    }
+
+    my $ua = LWP::UserAgent->new();
+    $ua->timeout(60);
+    $ua->requests_redirectable([]);
+
+    my $req = HTTP::Request->new(GET => $tinyurl);
+    my $res = $ua->request($req);
+    if(!is_redirect($res->code))
+    {
+        return undef;
+    }
+
+    my $sth = $dbh_tinyurl->prepare(
+        'INSERT OR IGNORE INTO tinyurl (tiny, url) VALUES (?, ?)'
+    );
+    $sth->execute($tinyurl, $res->header('Location'));
+    $sth->finish; undef $sth;
+
+    return $res->header('Location');
 }
 
