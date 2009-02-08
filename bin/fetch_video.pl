@@ -36,6 +36,7 @@ my $nv = WWW::NicoVideo::Download->new(
     password => $conf->{nicovideo}->{password},
 );
 $nv->user_agent->cookie_jar($cookie_jar);
+$nv->user_agent->timeout(30);
 
 my @files = ();
 my $sth = $dbh->prepare(
