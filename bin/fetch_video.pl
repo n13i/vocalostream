@@ -285,7 +285,7 @@ sub fetch_nicovideo
     }
 
     # set VorbisGain tags
-    run [$conf->{cmds}->{vorbisgain}, $file_song],
+    run [$conf->{cmds}->{vorbisgain}, '-q', $file_song],
         \$out, \$err, timeout(300) or die "$?";
 
     printf "done.\n";
