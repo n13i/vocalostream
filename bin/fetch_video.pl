@@ -242,6 +242,10 @@ sub fetch_nicovideo
         return undef;
     }
 
+    # set VorbisGain tags
+    run [$conf->{cmds}->{vorbisgain}, $file_song],
+        \$out, \$err, timeout(300) or die "$?";
+
     return {
         status => $x->{status},
         embeddable => $x->{thumb}->{embeddable},
