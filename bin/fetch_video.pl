@@ -66,7 +66,7 @@ foreach my $f (@files)
                 if($res->{embeddable} == 1)
                 {
                     $result = 1;
-                    sleep 5
+                    if($res->{downloaded} == 1) { sleep 5; }
                 }
             }
         }
@@ -226,6 +226,7 @@ sub fetch_nicovideo
 
     my $file_source = sprintf "%s/%s", $conf->{dirs}->{sources}, $video_id;
     printf "source: %s\n", $file_source;
+    my $downloaded = 0;
     if(!-f $file_source)
     {
         printf "downloading ...\n";
@@ -233,6 +234,7 @@ sub fetch_nicovideo
         $nv->download($video_id, $file_source . '.tmp');
         printf "done, takes %d seconds\n", (time - $start_time);
         rename $file_source . '.tmp', $file_source;
+        $downloaded = 1;
     }
     if(!-f $file_source || -z $file_source)
     {
@@ -294,6 +296,7 @@ sub fetch_nicovideo
         embeddable => $x->{thumb}->{embeddable},
         title => $x->{thumb}->{title},
         filename => $filename_song,
+        downloaded => $downloaded,
     };
 }
 
