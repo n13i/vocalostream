@@ -28,14 +28,14 @@ my $r = $dbh->do(
     'INSERT OR IGNORE INTO files (url) VALUES (?)',
     undef, $url
 );
-print $r . "\n";
+printf "add file: %s\n", ($r == 1 ? 'ok' : 'ignored (maybe already exists)');
 
 $r = $dbh->do(
     'INSERT INTO programs (file_id, type) ' .
     'VALUES ((SELECT id FROM files WHERE url = ?), ?)',
     undef, $url, $type
 );
-print $r . "\n";
+printf "add program: %s\n", ($r == 1 ? 'ok' : 'failed');
 
 exit;
 
