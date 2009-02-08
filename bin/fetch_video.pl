@@ -200,7 +200,7 @@ sub fetch_nicovideo
 
     if($tags_found == 0)
     {
-        warn "required tags not found";
+        printf "required tags not found\n";
         return undef;
     }
 
@@ -216,6 +216,7 @@ sub fetch_nicovideo
     }
     if(!-f $file_source || -z $file_source)
     {
+        printf "missing source file\n";
         return undef;
     }
 
