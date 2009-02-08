@@ -52,8 +52,12 @@ $sth->finish; undef $sth;
 $sth = $dbh->prepare(
     'UPDATE files SET title = ?, filename = ?, try = try + 1 WHERE id = ?'
 );
+my $n = 0;
 foreach my $f (@files)
 {
+    $n++;
+    printf "[%d/%d]\n", $n, ($#files+1);
+
     if($f->{url} =~ m{^http://www\.nicovideo\.jp/watch/(\w{2}\d+)$})
     {
         my $result = 0;
