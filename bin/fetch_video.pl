@@ -212,13 +212,13 @@ sub fetch_nicovideo
         my $start_time = time;
         $nv->download($video_id, $file_source . '.tmp');
         printf "done, takes %d seconds\n", (time - $start_time);
+        rename $file_source . '.tmp', $file_source;
     }
-    if(!-f $file_source . '.tmp' || -z $file_source . '.tmp')
+    if(!-f $file_source || -z $file_source)
     {
         return undef;
     }
 
-    rename $file_source . '.tmp', $file_source;
 
     my $filename_song = $video_id . '.ogg';
     my $file_song = sprintf "%s/%s", $conf->{dirs}->{songs}, $filename_song;
