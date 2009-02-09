@@ -40,7 +40,7 @@ $nv->user_agent->timeout(30);
 
 my @files = ();
 my $sth = $dbh->prepare(
-    'SELECT id, url FROM files WHERE filename IS NULL'
+    'SELECT id, url, try FROM files WHERE filename IS NULL'
 );
 $sth->execute;
 while(my $row = $sth->fetchrow_hashref)
@@ -56,7 +56,8 @@ my $n = 0;
 foreach my $f (@files)
 {
     $n++;
-    printf "[%d/%d] %d: %s\n", $n, ($#files+1), $f->{id}, $f->{url};
+    printf "[%d/%d] (take %d) %d: %s\n",
+        $n, ($#files+1), $f->{try}+1, $f->{id}, $f->{url};
 
     if($f->{url} =~ m{^http://www\.nicovideo\.jp/watch/(\w{2}\d+)$})
     {
@@ -219,6 +220,15 @@ sub fetch_nicovideo
         if($_->{found} == 0)
         {
             $tags_found = 0;
+        }
+    }
+
+    # ホワイトリストにあるものは許可
+    foreach(@{$conf->{whitelist}})
+    {
+        if($video_id =~ /^$_$/i)
+        {
+            $tags_found = 1;
         }
     }
 

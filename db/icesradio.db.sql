@@ -23,6 +23,6 @@ CREATE TABLE programs (
     id      INTEGER PRIMARY KEY,
     file_id INTEGER REFERENCES files(id),
     type    INTEGER NOT NULL DEFAULT 0,
-    played  INTEGER NOT NULL DEFAULT 0
+    added   INTEGER NOT NULL DEFAULT 0
 );
 
