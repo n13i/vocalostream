@@ -239,6 +239,11 @@ sub fetch_nicovideo
             $nv->download($video_id, $file_source . '.tmp');
             rename $file_source . '.tmp', $file_source;
         };
+        if($@)
+        {
+            printf "ERROR: %s\n", $@;
+            return undef;
+        }
         printf "done, takes %d seconds\n", (time - $start_time);
         $downloaded = 1;
     }
