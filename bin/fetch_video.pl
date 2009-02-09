@@ -235,9 +235,11 @@ sub fetch_nicovideo
     {
         printf "downloading ...\n";
         my $start_time = time;
-        $nv->download($video_id, $file_source . '.tmp');
+        eval {
+            $nv->download($video_id, $file_source . '.tmp');
+            rename $file_source . '.tmp', $file_source;
+        };
         printf "done, takes %d seconds\n", (time - $start_time);
-        eval { rename $file_source . '.tmp', $file_source };
         $downloaded = 1;
     }
     if(!-f $file_source || -z $file_source)
