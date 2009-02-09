@@ -81,7 +81,7 @@ while($mainloop)
         my $min = int($song->time / 60);
         my $sec = $song->time - $min * 60;
 
-        my $post = sprintf "%s (%d:%02d) %s",
+        my $post = sprintf "\x{266b} %s (%d:%02d) %s",
             $r->{title}, $min, $sec, $r->{url};
 
         printf "%s\nNow Playing: %s\n%s\n", '-' x 78, $post, '-' x 78;
