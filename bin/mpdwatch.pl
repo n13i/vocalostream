@@ -83,7 +83,7 @@ while($mainloop)
         my $post = sprintf "%s (%d:%02d) %s",
             $r->{title}, $min, $sec, $r->{url};
 
-        printf "%s\n", $post;
+        printf "%s\nNow Playing: %s\n%s\n", '-' x 78, $post, '-' x 78;
         if($conf->{twitter}->{post_enable} == 1)
         {
             $twit->update(encode('utf8', $post));
