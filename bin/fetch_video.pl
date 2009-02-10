@@ -24,6 +24,7 @@ my $dbh = DBI->connect(
     'dbi:SQLite:dbname=' . $conf->{db},
     '', '', {unicode => 1}
 );
+$dbh->func(5000, 'busy_timeout');
 
 my $twit = Net::Twitter->new(
     username => $conf->{twitter}->{username},
@@ -56,8 +57,8 @@ my $n = 0;
 foreach my $f (@files)
 {
     $n++;
-    printf "[%d/%d] (take %d) %d: %s\n",
-        $n, ($#files+1), $f->{try}+1, $f->{id}, $f->{url};
+    printf "%s\n[%d/%d] (take %d) %d: %s\n",
+        '-' x 78, $n, ($#files+1), $f->{try}+1, $f->{id}, $f->{url};
 
     if($f->{url} =~ m{^http://www\.nicovideo\.jp/watch/(\w{2}\d+)$})
     {
@@ -76,6 +77,7 @@ foreach my $f (@files)
             }
         }
 
+        printf "updating db ...\n";
         if($result == 1)
         {
             $sth->execute(
@@ -311,6 +313,7 @@ sub fetch_nicovideo
         return undef;
     }
 
+    printf "running VorbisGain ...\n";
     # set VorbisGain tags
     run [$conf->{cmds}->{vorbisgain}, '-q', $file_song],
         \$out, \$err, timeout(300) or die "$?";
