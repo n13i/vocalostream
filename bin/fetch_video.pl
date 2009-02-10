@@ -95,6 +95,7 @@ foreach my $f (@files)
                 $f->{id},
             );
         }
+        printf "[%d/%d] done.\n", $n, ($#files+1);
     }
 }
 $sth->finish; undef $sth;
