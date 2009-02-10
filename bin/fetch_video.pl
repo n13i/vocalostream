@@ -17,6 +17,7 @@ use IPC::Run qw(run timeout);
 use HTML::Entities;
 
 binmode STDOUT, ':encoding(utf8)';
+$| = 1;
 
 my $conf = &load_config;
 
