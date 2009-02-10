@@ -25,7 +25,6 @@ my $mpd = Audio::MPD->new(
 );
 
 $mpd->output_enable(0);
-#$mpd->output_disable(1);
 $mpd->output_enable(1);
 $mpd->fade(2);
 $mpd->repeat(1);
@@ -62,6 +61,8 @@ while($mainloop)
         $next_addtime = time + $add_interval;
     }
 
+    $mpd->output_enable(0);
+    $mpd->output_enable(1);
     $mpd->play;
 
     sleep 15;
