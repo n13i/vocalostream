@@ -79,6 +79,7 @@ foreach my $f (@files)
         }
 
         printf "updating db ...\n";
+        $dbh->begin_work;
         if($result == 1)
         {
             $sth->execute(
@@ -95,16 +96,19 @@ foreach my $f (@files)
                 $f->{id},
             );
         }
+        $dbh->commit;
         printf "[%d/%d] done.\n", $n, ($#files+1);
     }
 }
 $sth->finish; undef $sth;
 
+$dbh->begin_work;
 $dbh->do(
     'DELETE FROM programs WHERE file_id IN ' .
     '(SELECT id FROM files WHERE filename IS NULL AND try >= 3)'
 );
 $dbh->do('DELETE FROM files WHERE filename IS NULL AND try >= 3');
+$dbh->commit;
 
 
 sub fetch_nicovideo
@@ -318,7 +322,7 @@ sub fetch_nicovideo
     printf "running VorbisGain ...\n";
     # set VorbisGain tags
     run [$conf->{cmds}->{vorbisgain}, '-q', $file_song],
-        \$out, \$err, timeout(300) or die "$?";
+        \$out, \$err, timeout(60) or die "$?";
 
     printf "done.\n";
     return {

@@ -177,10 +177,12 @@ sub add_playlist
             }
         }
 
+        $dbh->begin_work;
         $dbh->do(
             'UPDATE programs SET added = 1 WHERE id = ?',
             undef, $p->{id},
         );
+        $dbh->commit;
     }
 }
 
