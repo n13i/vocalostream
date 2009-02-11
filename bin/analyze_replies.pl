@@ -27,43 +27,48 @@ $dbh->begin_work;
 
 my @updates = ();
 my $sth = $dbh->prepare(
-    'SELECT id, text FROM replies WHERE state = 0'
+    'SELECT id, user_screen_name, text FROM replies WHERE state = 0'
 );
 $sth->execute;
 while(my $row = $sth->fetchrow_hashref)
 {
     push(@updates, {
         id => $row->{id},
+        name => $row->{user_screen_name},
         text => $row->{text},
-        url => undef,
+        urls => [],
         state => 0,
     });
 }
 $sth->finish; undef $sth;
 
+my @files = ();
 foreach my $s (@updates)
 {
-    printf "%s\n", $s->{text};
+    printf "%s: %s\n", $s->{name}, $s->{text};
 
     my $tinyurl_expr = $conf->{tinyurl}->{expr};
     my @tinyurls = $s->{text} =~ m{($tinyurl_expr)}sg;
     foreach(@tinyurls)
     {
-        print $_ . " -> ";
         my $expanded = &expand_tinyurl($_);                                             if(defined($expanded))
         {
-            print $expanded;
+            printf "  untinyurlize: %s\n", $expanded;
             $s->{text} =~ s#$_#$expanded#g;
         }
-        print "\n";
     }
 
-    if($s->{text} =~ m{((?:sm|nm)\d+)})
+    my @urls = $s->{text} =~ m{((?:sm|nm)\d+)}sg;
+    if($#urls >= 0)
     {
-        $s->{url} = 'http://www.nicovideo.jp/watch/' . $1;
         $s->{state} = 1;
-        printf "  got video: %s\n", $s->{url};
-    }    
+        foreach(@urls)
+        {
+            my $url = 'http://www.nicovideo.jp/watch/' . $_;
+            printf "  got video: %s\n", $url;
+            push(@{$s->{urls}}, $url);
+        }    
+    }
     else
     {
         $s->{state} = -1;
@@ -83,16 +88,18 @@ foreach(@updates)
 {
     next if($_->{state} != 1);
 
-    $dbh->do(
-        'INSERT OR IGNORE INTO files (url) VALUES (?)',
-        undef, $_->{url}
-    );
-
-    $dbh->do(
-        'INSERT INTO programs (file_id, type) ' .
-        'VALUES ((SELECT id FROM files WHERE url = ?), ?)',
-        undef, $_->{url}, 1
-    );
+    foreach my $url (@{$_->{urls}})
+    {
+        $dbh->do(
+            'INSERT OR IGNORE INTO files (url) VALUES (?)',
+            undef, $url
+        );
+        $dbh->do(
+            'INSERT INTO programs (file_id, type) ' .
+            'VALUES ((SELECT id FROM files WHERE url = ?), ?)',
+            undef, $url, 1
+        );
+    }
 }
 
 $dbh->commit;
