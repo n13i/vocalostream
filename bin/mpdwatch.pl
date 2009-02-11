@@ -61,9 +61,18 @@ while($mainloop)
         $next_addtime = time + $add_interval;
     }
 
-    $mpd->output_enable(0);
-    $mpd->output_enable(1);
-    $mpd->play;
+    if(!defined($mpd->song))
+    {
+        printf "Not playing, trying to restart\n";
+        # FIXME
+        $mpd->output_disable(0);
+        $mpd->output_disable(1);
+        sleep 1;
+        $mpd->output_enable(0);
+        $mpd->output_enable(1);
+        sleep 1;
+        $mpd->play;
+    }
 
     sleep 15;
 
