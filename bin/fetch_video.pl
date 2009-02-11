@@ -280,10 +280,10 @@ sub fetch_nicovideo
     my ($out, $err);
     if($video_id =~ /^nm/)
     {
-        run ["cat", $file_source], '|',
-            ["$Bin/cws2fws.pl"], '|',
-            [$conf->{cmds}->{ffmpeg},
-             '-i', '-',
+        my $tmpswf = $file_source . '.tmp.swf';
+        run ["$Bin/cws2fws.pl"], '<', $file_source, '>', $tmpswf;
+        run [$conf->{cmds}->{ffmpeg},
+             '-i', $tmpswf,
              '-vn',
              '-ac', 2,
              '-ar', 44100,
@@ -295,6 +295,7 @@ sub fetch_nicovideo
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
+        eval { unlink($tmpswf); };
     }
     else
     {
