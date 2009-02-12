@@ -156,8 +156,6 @@ sub fetch_nicovideo
         };
     }
 
-    #print Dump($x);
-
     # タグを取得してチェック
     printf "checking tags ...\n";
     my $tags = &get_tags($x);
@@ -288,13 +286,47 @@ sub fetch_nicovideo
         \$out, \$err, timeout(60) or die "$?";
 
     printf "done.\n";
+
+    # 投稿者名取得テスト
+    my $username = &get_username($video_id);
+
     return {
         status => $x->{status},
         embeddable => $x->{thumb}->{embeddable},
         title => $x->{thumb}->{title},
         filename => $filename_song,
         downloaded => $downloaded,
+        username => $username;
     };
+}
+
+sub get_username
+{
+    my $video_id = shift || undef;
+    my $username = undef;
+
+    if(!($video_id =~ /(\d+)/))
+    {
+        return undef;
+    }
+
+    my $id = $1;
+    my $res = $nv->user_agent->get(
+        'http://www.smilevideo.jp/allegation/allegation/' . $id . '/'
+    );
+    if($res->is_error)
+    {
+        return undef;
+    }
+
+    if($res->content =~ m{
+        <p class="TXT12"><strong>([^<]+)</strong>\sが投稿した
+    }sx)
+    {
+        $username = decode_entities($1);
+    }
+
+    return $username;
 }
 
 sub get_thumbinfo
@@ -390,6 +422,8 @@ sub _get_tags3
             lock => 0,
         };
     }
+
+    $tag->{content} = decode_entities($tag->{content});
 
     return $tag;
 }
