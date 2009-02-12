@@ -319,8 +319,8 @@ sub get_username
         return undef;
     }
 
-    if($res->content =~ m{
-        <p class="TXT12"><strong>([^<]+)</strong>\sが投稿した
+    if($res->decoded_content =~ m{
+        <p\sclass="TXT12"><strong>([^<]+)</strong>\sが投稿した
     }sx)
     {
         $username = decode_entities($1);
