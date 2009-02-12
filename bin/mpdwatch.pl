@@ -88,15 +88,20 @@ while($mainloop)
         $current_id = $song->id;
 
         my $r = $dbh->selectrow_hashref(
-            'SELECT url, title FROM files WHERE filename = ? LIMIT 1',
+            'SELECT url, title, username FROM files WHERE filename = ? LIMIT 1',
             undef, $song->file
         );
 
         my $min = int($song->time / 60);
         my $sec = $song->time - $min * 60;
 
-        my $post = sprintf "\x{266b} %s (%d:%02d) %s",
+        my $post = sprintf "%s (%d:%02d) %s",
             $r->{title}, $min, $sec, $r->{url};
+        if(defined($r->{username}))
+        {
+            $post = sprintf "[%s] %s", $r->{username}, $post;
+        }
+        $post = "\x{266b} " . $post;
 
         printf "%s\nNow Playing: %s\n", '-' x 78, $post;
         if($conf->{twitter}->{post_enable} == 1)
