@@ -4,6 +4,8 @@ use warnings;
 use utf8;
 
 use FindBin qw($Bin);
+use FindBin::libs;
+
 use YAML;
 use DBD::SQLite;
 use WWW::NicoVideo::Download;
@@ -12,6 +14,8 @@ use URI::Escape;
 use Web::Scraper;
 use Encode;
 
+use VocaloidFM;
+
 binmode STDOUT, ':encoding(utf8)';
 
 my $mode = shift @ARGV || die;
@@ -19,7 +23,7 @@ my $query = shift @ARGV || die;
 
 $query = decode('utf8', $query);
 
-my $conf = &load_config;
+my $conf = load_config;
 
 my $dbh = DBI->connect(
     'dbi:SQLite:dbname=' . $conf->{db},
@@ -95,18 +99,4 @@ foreach(@{$r->{videos}})
 }
 
 exit;
-
-
-
-sub load_config
-{
-    my $conffile = shift || $Bin . '/../conf/icesradio.conf';
-
-    open FH, '<:encoding(utf8)', $conffile or return undef;
-    my $yaml = join('', <FH>);
-    close FH;
-
-    my $conf = YAML::Load($yaml) or return undef;
-    return $conf;
-}
 

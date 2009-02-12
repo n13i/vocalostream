@@ -7,6 +7,8 @@ use utf8;
 #   http://mattn.kaoriya.net/software/lang/perl/20081027121909.htm
 
 use FindBin qw($Bin);
+use FindBin::libs;
+
 use Net::Twitter;
 use YAML;
 use DBD::SQLite;
@@ -16,10 +18,12 @@ use XML::Simple;
 use IPC::Run qw(run timeout);
 use HTML::Entities;
 
+use VocaloidFM;
+
 binmode STDOUT, ':encoding(utf8)';
 select(STDOUT); $| = 1;
 
-my $conf = &load_config;
+my $conf = load_config;
 
 my $dbh = DBI->connect(
     'dbi:SQLite:dbname=' . $conf->{db},
@@ -388,17 +392,5 @@ sub _get_tags3
     }
 
     return $tag;
-}
-
-sub load_config
-{
-    my $conffile = shift || $Bin . '/../conf/icesradio.conf';
-
-    open FH, '<:encoding(utf8)', $conffile or return undef;
-    my $yaml = join('', <FH>);
-    close FH;
-
-    my $conf = YAML::Load($yaml) or return undef;
-    return $conf;
 }
 

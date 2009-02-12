@@ -4,14 +4,18 @@ use warnings;
 use utf8;
 
 use FindBin qw($Bin);
+use FindBin::libs;
+
 use YAML;
 use DBD::SQLite;
 use Encode;
 use Audio::MPD;
 
+use VocaloidFM;
+
 binmode STDOUT, ':encoding(utf8)';
 
-my $conf = &load_config;
+my $conf = load_config;
 
 my $mpd = Audio::MPD->new(
     hostname => $conf->{mpd}->{host},
@@ -35,17 +39,4 @@ print Dump(@delete_ids);
 $mpd->playlist->deleteid(@delete_ids);
 
 exit;
-
-
-sub load_config
-{
-    my $conffile = shift || $Bin . '/../conf/icesradio.conf';
-
-    open FH, '<:encoding(utf8)', $conffile or return undef;
-    my $yaml = join('', <FH>);
-    close FH;
-
-    my $conf = YAML::Load($yaml) or return undef;
-    return $conf;
-}
 

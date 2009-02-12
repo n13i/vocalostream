@@ -4,15 +4,19 @@ use warnings;
 use utf8;
 
 use FindBin qw($Bin);
+use FindBin::libs;
+
 use Net::Twitter;
 use YAML;
 use DBD::SQLite;
 use LWP::UserAgent;
 use HTTP::Status;
 
+use VocaloidFM;
+
 binmode STDOUT, ':encoding(utf8)';
 
-my $conf = &load_config;
+my $conf = load_config;
 
 my $dbh = DBI->connect(
     'dbi:SQLite:dbname=' . $conf->{db},
@@ -103,19 +107,6 @@ foreach(@updates)
 }
 
 $dbh->commit;
-
-
-sub load_config
-{
-    my $conffile = shift || $Bin . '/../conf/icesradio.conf';
-
-    open FH, '<:encoding(utf8)', $conffile or return undef;
-    my $yaml = join('', <FH>);
-    close FH;
-
-    my $conf = YAML::Load($yaml) or return undef;
-    return $conf;
-}
 
 sub expand_tinyurl
 {
