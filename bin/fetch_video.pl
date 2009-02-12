@@ -40,6 +40,7 @@ my $nv = WWW::NicoVideo::Download->new(
 $nv->user_agent->cookie_jar($cookie_jar);
 $nv->user_agent->timeout(30);
 
+
 my @files = ();
 my $sth = $dbh->prepare(
     'SELECT id, url, try FROM files WHERE filename IS NULL'
@@ -126,17 +127,12 @@ sub fetch_nicovideo
         }
     }
 
-    my $res = $nv->user_agent->get(
-        'http://www.nicovideo.jp/api/getthumbinfo/' . $video_id
-    );
-    if($res->is_error)
+    my $x = &get_thumbinfo($video_id);
+    if(!defined($x))
     {
-        printf "ERROR: get api failed\n";
+        printf "ERROR: getthumbinfo failed\n";
         return undef;
     }
-
-    my $xs = XML::Simple->new;
-    my $x = $xs->XMLin($res->decoded_content);
     if($x->{status} ne 'ok')
     {
         printf "ERROR: status NG\n";
@@ -158,61 +154,21 @@ sub fetch_nicovideo
 
     #print Dump($x);
 
-    # タグの存在をチェック
-
+    # タグを取得してチェック
     printf "checking tags ...\n";
-    my @tags = ();
-    if(ref($x->{thumb}->{tags}) eq 'ARRAY')
-    {
-        foreach my $d (@{$x->{thumb}->{tags}})
-        {
-            printf "  domain: %s\n", $d->{domain};
-            if(ref($d->{tag}) eq 'ARRAY')
-            {
-                foreach(@{$d->{tag}})
-                {
-                    push(@tags, $_);
-                }
-            }
-            else
-            {
-                push(@tags, $d->{tag});
-            }
-        }
-    }
-    else
-    {
-        if(ref($x->{thumb}->{tags}->{tag}) eq 'ARRAY')
-        {
-            foreach(@{$x->{thumb}->{tags}->{tag}})
-            {
-                push(@tags, $_);
-            }
-        }
-        else
-        {
-            push(@tags, $x->{thumb}->{tags}->{tag});
-        }
-    }
-
-    my @check_tags = (
-        { expr => $conf->{tagcheck_expr}, found => 0 },
-        { expr => '^音楽$', found => 0 },
+    my $tags = &get_tags($x);
+    my @tags_checked = (
+        { type => 1,  expr => '^音楽$', found => 0 },
+        { type => 1,  expr => $conf->{tagcheck}->{required}, found => 0 },
+        { type => -1, expr => $conf->{tagcheck}->{ng}, found => 0 },
     );
-    foreach my $tag (@tags)
+    foreach my $tag (@{$tags})
     {
-        my $t = $tag;
-        if(ref($tag) eq 'HASH')
-        {
-            $t = $tag->{content};
-            printf "  * %s\n", $t;
-        }
-        else
-        {
-            printf "    %s\n", $t;
-        }
+        printf "  [%s] %s %s\n",
+            $tag->{domain}, ($tag->{lock} == 1 ? '*' : ' '), $tag->{content};
+        my $t = $tag->{content};
         $t =~ tr/Ａ-Ｚａ-ｚ/A-Za-z/;
-        foreach(@check_tags)
+        foreach(@tags_checked)
         {
             my $expr = $_->{expr};
             if($t =~ /$expr/i)
@@ -222,12 +178,14 @@ sub fetch_nicovideo
         }
     }
 
-    my $tags_found = 1;
-    foreach(@check_tags)
+    my $tags_ok = 1;
+    foreach(@tags_checked)
     {
-        if($_->{found} == 0)
+        if(($_->{type} == 1 && $_->{found} == 0) ||
+           ($_->{type} == -1 && $_->{found} == 1))
         {
-            $tags_found = 0;
+            $tags_ok = 0;
+            last;
         }
     }
 
@@ -236,13 +194,13 @@ sub fetch_nicovideo
     {
         if($video_id =~ /^$_$/i)
         {
-            $tags_found = 1;
+            $tags_ok = 1;
         }
     }
 
-    if($tags_found == 0)
+    if($tags_ok == 0)
     {
-        printf "ERROR: required tags not found\n";
+        printf "ERROR: NG due to tags \n";
         return undef;
     }
 
@@ -333,6 +291,103 @@ sub fetch_nicovideo
         filename => $filename_song,
         downloaded => $downloaded,
     };
+}
+
+sub get_thumbinfo
+{
+    my $video_id = shift || undef;
+
+    my $res = $nv->user_agent->get(
+        'http://www.nicovideo.jp/api/getthumbinfo/' . $video_id
+    );
+    if($res->is_error)
+    {
+        return undef;
+    }
+
+    my $xs = XML::Simple->new;
+    my $x = $xs->XMLin($res->decoded_content);
+
+    return $x;
+}
+
+sub get_tags
+{
+    my $tags = [];
+
+    my $x = shift || return undef;
+    my $thumb_tags = $x->{thumb}->{tags};
+
+    if(ref($thumb_tags) eq 'ARRAY')
+    {
+        foreach my $d (@{$thumb_tags})
+        {
+            push(@{$tags}, &_get_tags2($d));
+        }
+    }
+    else
+    {
+        # domain が存在しない場合
+        push(@{$tags}, &_get_tags2($thumb_tags));
+    }
+
+    return $tags;
+}
+
+sub _get_tags2
+{
+    my @tags = ();
+    my $t = shift || return @tags;
+
+    my $domain = $t->{domain} || 'jp';
+
+    if(ref($t->{tag}) eq 'ARRAY')
+    {
+        # タグが複数の場合
+        foreach(@{$t->{tag}})
+        {
+            my $tag = &_get_tags3($_);
+            if(defined($tag))
+            {
+                $tag->{domain} = $domain;
+                push(@tags, $tag);
+            }
+        }
+    }
+    else
+    {
+        # タグが単数の場合
+        my $tag = &_get_tags3($t->{tag});
+        if(defined($tag))
+        {
+            $tag->{domain} = $domain;
+            push(@tags, $tag);
+        }
+    }
+
+    return @tags;
+}
+
+sub _get_tags3
+{
+    my $t = shift || return undef;
+    my $tag;
+    if(ref($t) eq 'HASH')
+    {
+        $tag = {
+            content => $t->{content},
+            lock => $t->{lock},
+        };
+    }
+    else
+    {
+        $tag = {
+            content => $t,
+            lock => 0,
+        };
+    }
+
+    return $tag;
 }
 
 sub load_config
