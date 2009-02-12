@@ -95,13 +95,13 @@ while($mainloop)
         my $min = int($song->time / 60);
         my $sec = $song->time - $min * 60;
 
-        my $post = sprintf "%s (%d:%02d) %s",
-            $r->{title}, $min, $sec, $r->{url};
+        my $post = $r->{title};
         if(defined($r->{username}))
         {
-            $post = sprintf "[%s] %s", $r->{username}, $post;
+            $post .= " / " . $r->{username};
         }
-        $post = "\x{266b} " . $post;
+        $post = sprintf "\x{266b} %s (%d:%02d) %s",
+            $post, $min, $sec, $r->{url};
 
         printf "%s\nNow Playing: %s\n", '-' x 78, $post;
         if($conf->{twitter}->{post_enable} == 1)
