@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 
 use base qw(Exporter);
-our @EXPORT = qw(load_config config);
+our @EXPORT = qw(load_config get_config);
 
 use FindBin qw($Bin);
 
@@ -18,7 +18,7 @@ BEGIN {
 }
 
 # static
-sub config
+sub get_config
 {
     return $instance->{config};
 }

@@ -19,6 +19,7 @@ use IPC::Run qw(run timeout);
 use HTML::Entities;
 
 use VocaloidFM;
+use VocaloidFM::Download;
 
 binmode STDOUT, ':encoding(utf8)';
 select(STDOUT); $| = 1;
@@ -36,14 +37,7 @@ my $twit = Net::Twitter->new(
     password => $conf->{twitter}->{password},
 );
 
-my $cookie_jar = HTTP::Cookies->new(file => $conf->{dirs}->{data} . '/cookies.txt', autosave => 1);
-my $nv = WWW::NicoVideo::Download->new(
-    email => $conf->{nicovideo}->{email},
-    password => $conf->{nicovideo}->{password},
-);
-$nv->user_agent->cookie_jar($cookie_jar);
-$nv->user_agent->timeout(30);
-
+my $dl = VocaloidFM::Download->new;
 
 my @files = ();
 my $sth = $dbh->prepare(
@@ -57,7 +51,8 @@ while(my $row = $sth->fetchrow_hashref)
 $sth->finish; undef $sth;
 
 $sth = $dbh->prepare(
-    'UPDATE files SET title = ?, filename = ?, try = try + 1 WHERE id = ?'
+    'UPDATE files SET title = ?, filename = ?, username = ?, ' .
+    'try = try + 1 WHERE id = ?'
 );
 my $n = 0;
 foreach my $f (@files)
@@ -90,12 +85,14 @@ foreach my $f (@files)
             $sth->execute(
                 $res->{title},
                 $res->{filename},
+                $res->{username},
                 $f->{id},
             );
         }
         else
         {
             $sth->execute(
+                undef,
                 undef,
                 undef,
                 $f->{id},
@@ -131,7 +128,7 @@ sub fetch_nicovideo
         }
     }
 
-    my $x = &get_thumbinfo($video_id);
+    my $x = $dl->get_thumbinfo($video_id);
     if(!defined($x))
     {
         printf "ERROR: getthumbinfo failed\n";
@@ -158,7 +155,7 @@ sub fetch_nicovideo
 
     # タグを取得してチェック
     printf "checking tags ...\n";
-    my $tags = &get_tags($x);
+    my $tags = VocaloidFM::Download::get_tags($x);
     my @tags_checked = (
         { type => 1,  expr => '^音楽$', found => 0 },
         { type => 1,  expr => $conf->{tagcheck}->{required}, found => 0 },
@@ -214,7 +211,8 @@ sub fetch_nicovideo
         printf "downloading ...\n";
         my $start_time = time;
         eval {
-            $nv->download($video_id, $file_source . '.tmp');
+            #$nv->download($video_id, $file_source . '.tmp');
+            $dl->download($video_id, $file_source . '.tmp');
         };
         if($@)
         {
@@ -288,7 +286,7 @@ sub fetch_nicovideo
     printf "done.\n";
 
     # 投稿者名取得テスト
-    my $username = &get_username($video_id);
+    my $username = $dl->get_username($video_id);
 
     return {
         status => $x->{status},
@@ -298,133 +296,5 @@ sub fetch_nicovideo
         downloaded => $downloaded,
         username => $username,
     };
-}
-
-sub get_username
-{
-    my $video_id = shift || undef;
-    my $username = undef;
-
-    if(!($video_id =~ /(\d+)/))
-    {
-        return undef;
-    }
-
-    my $id = $1;
-    my $res = $nv->user_agent->get(
-        'http://www.smilevideo.jp/allegation/allegation/' . $id . '/'
-    );
-    if($res->is_error)
-    {
-        return undef;
-    }
-
-    if($res->decoded_content =~ m{
-        <p\sclass="TXT12"><strong>([^<]+)</strong>\sが投稿した
-    }sx)
-    {
-        $username = decode_entities($1);
-    }
-
-    return $username;
-}
-
-sub get_thumbinfo
-{
-    my $video_id = shift || undef;
-
-    my $res = $nv->user_agent->get(
-        'http://www.nicovideo.jp/api/getthumbinfo/' . $video_id
-    );
-    if($res->is_error)
-    {
-        return undef;
-    }
-
-    my $xs = XML::Simple->new;
-    my $x = $xs->XMLin($res->decoded_content);
-
-    return $x;
-}
-
-sub get_tags
-{
-    my $tags = [];
-
-    my $x = shift || return undef;
-    my $thumb_tags = $x->{thumb}->{tags};
-
-    if(ref($thumb_tags) eq 'ARRAY')
-    {
-        foreach my $d (@{$thumb_tags})
-        {
-            push(@{$tags}, &_get_tags2($d));
-        }
-    }
-    else
-    {
-        # domain が存在しない場合
-        push(@{$tags}, &_get_tags2($thumb_tags));
-    }
-
-    return $tags;
-}
-
-sub _get_tags2
-{
-    my @tags = ();
-    my $t = shift || return @tags;
-
-    my $domain = $t->{domain} || 'jp';
-
-    if(ref($t->{tag}) eq 'ARRAY')
-    {
-        # タグが複数の場合
-        foreach(@{$t->{tag}})
-        {
-            my $tag = &_get_tags3($_);
-            if(defined($tag))
-            {
-                $tag->{domain} = $domain;
-                push(@tags, $tag);
-            }
-        }
-    }
-    else
-    {
-        # タグが単数の場合
-        my $tag = &_get_tags3($t->{tag});
-        if(defined($tag))
-        {
-            $tag->{domain} = $domain;
-            push(@tags, $tag);
-        }
-    }
-
-    return @tags;
-}
-
-sub _get_tags3
-{
-    my $t = shift || return undef;
-    my $tag;
-    if(ref($t) eq 'HASH')
-    {
-        $tag = {
-            content => $t->{content},
-            lock => $t->{lock},
-        };
-    }
-    else
-    {
-        $tag = {
-            content => $t,
-            lock => 0,
-        };
-    }
-
-    $tag->{content} = decode_entities($tag->{content});
-
-    return $tag;
 }
 
