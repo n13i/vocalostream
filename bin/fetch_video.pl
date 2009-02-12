@@ -234,6 +234,14 @@ sub fetch_nicovideo
     my $file_song = sprintf "%s/%s", $conf->{dirs}->{songs}, $filename_song;
     my $title = sprintf "%s (from http://www.nicovideo.jp/watch/%s)", $x->{thumb}->{title}, $video_id;
 
+    # 投稿者名取得
+    my $username = $dl->get_username($video_id);
+    my $artist = '';
+    if(defined($username))
+    {
+        $artist = $username;
+    }
+
     printf "converting %s ...\n", $title;
     my ($out, $err);
     if($video_id =~ /^nm/)
@@ -250,6 +258,7 @@ sub fetch_nicovideo
             [$conf->{cmds}->{oggenc},
              '-Q',
              '-t', $title,
+             '-a', $artist,
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
@@ -267,6 +276,7 @@ sub fetch_nicovideo
             [$conf->{cmds}->{oggenc},
              '-Q',
              '-t', $title,
+             '-a', $artist,
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
             \$out, \$err, timeout(300) or die "$?";
@@ -284,9 +294,6 @@ sub fetch_nicovideo
         \$out, \$err, timeout(60) or die "$?";
 
     printf "done.\n";
-
-    # 投稿者名取得テスト
-    my $username = $dl->get_username($video_id);
 
     return {
         status => $x->{status},
