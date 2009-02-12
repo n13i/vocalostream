@@ -296,7 +296,7 @@ sub fetch_nicovideo
         title => $x->{thumb}->{title},
         filename => $filename_song,
         downloaded => $downloaded,
-        username => $username;
+        username => $username,
     };
 }
 

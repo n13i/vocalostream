@@ -5,10 +5,25 @@ use warnings;
 use utf8;
 
 use base qw(Exporter);
-our @EXPORT = qw(load_config);
+our @EXPORT = qw(load_config config);
 
 use FindBin qw($Bin);
 
+my $instance;
+
+BEGIN {
+    $instance = bless {
+        config => undef,
+    }, __PACKAGE__;
+}
+
+# static
+sub config
+{
+    return $instance->{config};
+}
+
+# static
 sub load_config
 {
     my $conffile = shift || $Bin . '/../conf/icesradio.conf';
@@ -18,6 +33,9 @@ sub load_config
     close FH;
 
     my $conf = YAML::Load($yaml) or return undef;
+
+    $instance->{config} = $conf;
+
     return $conf;
 }
 

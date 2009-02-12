@@ -15,6 +15,7 @@ CREATE TABLE files (
     url      TEXT NOT NULL,
     title    TEXT,
     filename TEXT,
+    username TEXT,
     try      INTEGER NOT NULL DEFAULT 0,
     UNIQUE(url)
 );
