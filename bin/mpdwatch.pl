@@ -28,8 +28,7 @@ my $mpd = Audio::MPD->new(
     port => $conf->{mpd}->{port},
 );
 
-$mpd->output_enable(0);
-$mpd->output_enable(1);
+&mpd_set_outputs(1);
 $mpd->fade(2);
 $mpd->repeat(1);
 $mpd->random(0);
@@ -68,12 +67,9 @@ while($mainloop)
     if(!defined($mpd->song))
     {
         printf "Not playing, trying to restart\n";
-        # FIXME
-        $mpd->output_disable(0);
-        $mpd->output_disable(1);
+        &mpd_set_outputs(0);
         sleep 1;
-        $mpd->output_enable(0);
-        $mpd->output_enable(1);
+        &mpd_set_outputs(1);
         sleep 1;
         $mpd->play;
     }
@@ -207,5 +203,22 @@ sub add_playlist
 sub stop
 {
     $mainloop = 0;
+}
+
+sub mpd_set_outputs
+{
+    my $enable = shift || return undef;
+
+    foreach(@{$conf->{mpd}->{outputs}})
+    {
+        if($enable == 1)
+        {
+            $mpd->output_enable($_);
+        }
+        else
+        {
+            $mpd->output_disable($_);
+        }
+    }
 }
 
