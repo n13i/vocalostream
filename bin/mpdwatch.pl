@@ -147,7 +147,8 @@ sub add_playlist
         #print Dump($p);
         printf " [%d] %s %s\n", $p->{id}, $p->{filename}, $p->{title};
 
-        if($p->{type} == 1)
+        #if($p->{type} == 1)
+        if(1)
         {
             # request mode
             my @items = $mpd->playlist->as_items;
