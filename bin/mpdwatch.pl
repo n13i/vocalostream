@@ -52,7 +52,7 @@ $SIG{KILL} = \&stop;
 $SIG{TERM} = \&stop;
 $SIG{INT} = \&stop;
 
-my $add_interval = 60;
+my $add_interval = 30;
 
 my $next_addtime = 0; #time + $add_interval;
 
