@@ -261,7 +261,7 @@ sub fetch_nicovideo
              '-a', $artist,
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
-            \$out, \$err, timeout(300) or die "$?";
+            \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
         eval { unlink($tmpswf); };
     }
     else
@@ -279,7 +279,7 @@ sub fetch_nicovideo
              '-a', $artist,
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
-            \$out, \$err, timeout(300) or die "$?";
+            \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
     }
     print $err;
     if(!-f $file_song)
@@ -291,7 +291,7 @@ sub fetch_nicovideo
     printf "running VorbisGain ...\n";
     # set VorbisGain tags
     run [$conf->{cmds}->{vorbisgain}, '-q', $file_song],
-        \$out, \$err, timeout(60) or die "$?";
+        \$out, \$err, timeout($conf->{converter}->{vorbisgain_timeout}) or die "$?";
 
     printf "done.\n";
 
