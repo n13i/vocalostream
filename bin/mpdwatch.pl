@@ -28,11 +28,7 @@ my $mpd = Audio::MPD->new(
     port => $conf->{mpd}->{port},
 );
 
-&mpd_set_outputs(1);
-$mpd->fade(2);
-$mpd->repeat(1);
-$mpd->random(0);
-$mpd->volume(100);
+&init_mpd;
 
 my $twit = Net::Twitter->new(
     username => $conf->{twitter}->{username},
@@ -69,7 +65,7 @@ while($mainloop)
         printf "Not playing, trying to restart\n";
         &mpd_set_outputs(0);
         sleep 1;
-        &mpd_set_outputs(1);
+        &init_mpd;
         sleep 1;
         $mpd->play;
     }
@@ -108,6 +104,16 @@ while($mainloop)
 }
 
 exit;
+
+
+sub init_mpd
+{
+    &mpd_set_outputs(1);
+    $mpd->fade(2);
+    $mpd->repeat(1);
+    $mpd->random(0);
+    $mpd->volume(100);
+}
 
 sub add_playlist
 {
