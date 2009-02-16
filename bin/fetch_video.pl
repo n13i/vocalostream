@@ -242,10 +242,17 @@ sub fetch_nicovideo
         $artist = $username;
     }
 
+    my $cmd_file = $conf->{cmds}->{file};
+    my $mimetype = `$cmd_file -b -i $file_source`;
+    printf "mime type: %s\n", $mimetype;
+
     printf "converting %s ...\n", $title;
     my ($out, $err);
-    if($video_id =~ /^nm/)
+    if($mimetype =~ /flash/)
     {
+        # 展開してから ffmpeg へ
+        # 途中までしか変換されないことがあったので
+        # パイプではなくファイルにして渡す
         my $tmpswf = $file_source . '.tmp.swf';
         run ["$Bin/cws2fws.pl"], '<', $file_source, '>', $tmpswf;
         run [$conf->{cmds}->{ffmpeg},
@@ -263,6 +270,28 @@ sub fetch_nicovideo
              '-o', $file_song, '-'],
             \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
         eval { unlink($tmpswf); };
+    }
+    elsif($mimetype =~ /mp4/)
+    {
+        # HE-AAC のデコードミスを防ぐため
+        # 一度抽出して faad でデコード
+        my $tmpaac = $file_source . '.tmp.aac';
+        run [$conf->{cmds}->{ffmpeg},
+             '-y',
+             '-i', $file_source,
+             '-vn',
+             '-acodec', 'copy',
+             $tmpaac],
+            \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
+        run [$conf->{cmds}->{faad}, '-q', '-o', '-', $tmpaac], '|',
+            [$conf->{cmds}->{oggenc},
+             '-Q',
+             '-t', $title,
+             '-a', $artist,
+             '-q', $conf->{converter}->{quality},
+             '-o', $file_song, '-'],
+            \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
+        eval { unlink($tmpaac); };
     }
     else
     {
