@@ -48,11 +48,10 @@ $SIG{KILL} = \&stop;
 $SIG{TERM} = \&stop;
 $SIG{INT} = \&stop;
 
-my $add_interval = 30;
+my $check_interval = $conf->{playlist}->{check_interval};
+my $add_interval = $conf->{playlist}->{add_interval};
 
 my $next_addtime = 0; #time + $add_interval;
-
-my $check_interval = 15;
 
 while($mainloop)
 {
