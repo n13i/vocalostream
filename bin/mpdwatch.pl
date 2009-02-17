@@ -52,11 +52,25 @@ my $add_interval = 30;
 
 my $next_addtime = 0; #time + $add_interval;
 
+my $check_interval = 15;
+
 while($mainloop)
 {
+    my $status = $mpd->status;
+
+    # リクエスト曲追加処理
+    if($status->state eq 'play' &&
+       $status->time->seconds_left < $check_interval)
+    {
+        # 残り時間が check_interval 未満であれば
+        # リクエスト曲を順に 1 曲のみ追加
+        &add_playlist({request_mode => 1});
+    }
+
+    # リクエスト曲以外の追加処理
     if(time >= $next_addtime)
     {
-        &add_playlist;
+        &add_playlist({request_mode => 0});
         $next_addtime = time + $add_interval;
     }
 
@@ -70,7 +84,7 @@ while($mainloop)
         $mpd->play;
     }
 
-    sleep 15;
+    sleep $check_interval;
 
     my $song = $mpd->song;
     next if(!defined($song));
@@ -117,6 +131,18 @@ sub init_mpd
 
 sub add_playlist
 {
+    my $arg = shift || { request_mode => 0 };
+
+    my $sql_reqmode = '';
+    if($arg->{request_mode} == 1)
+    {
+        $sql_reqmode = 'AND type = 1 ORDER BY id LIMIT 1';
+    }
+    else
+    {
+        $sql_reqmode = 'ORDER BY id';
+    }
+
     # ファイルが既に存在し、プレイリストに追加済みでないものを選択
     # TODO 初回は added = 1 のものも追加する？
     my $sth = $dbh->prepare(
@@ -125,7 +151,7 @@ sub add_playlist
         'FROM programs ' .
         'LEFT JOIN files ON programs.file_id = files.id ' .
         'WHERE files.filename IS NOT NULL AND programs.added = 0 ' .
-        'ORDER BY id DESC'
+        $sql_reqmode
     );
     $sth->execute;
 
@@ -153,8 +179,7 @@ sub add_playlist
         #print Dump($p);
         printf " [%d] %s %s\n", $p->{id}, $p->{filename}, $p->{title};
 
-        #if($p->{type} == 1)
-        if(1)
+        if($p->{type} == 1)
         {
             # request mode
             my @items = $mpd->playlist->as_items;
@@ -188,6 +213,8 @@ sub add_playlist
         else
         {
             # normal mode
+
+            # プレイリストの末尾に追加
             eval {
                 $mpd->playlist->add($p->{filename});
             };
