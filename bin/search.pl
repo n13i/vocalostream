@@ -85,7 +85,8 @@ my $scraper = scraper {
         process '.vinfo_length', 'length' => 'TEXT';
         process '.vinfo_posted', 'posted' => 'TEXT';
         process 'a.video',       'url'    => '@href';
-        process '.vinfo_title',  'title'  => 'TEXT';
+        process 'a.video',       'title'  => 'TEXT';
+#        process '.vinfo_title',  'title'  => 'TEXT';
         process '.vinfo_description', 'description' => 'TEXT';
         process '.vinfo_last_res', 'last_res' => 'TEXT';
     };
