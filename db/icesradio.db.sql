@@ -21,9 +21,10 @@ CREATE TABLE files (
 );
 
 CREATE TABLE programs (
-    id      INTEGER PRIMARY KEY,
-    file_id INTEGER REFERENCES files(id),
-    type    INTEGER NOT NULL DEFAULT 0,
-    added   INTEGER NOT NULL DEFAULT 0
+    id         INTEGER PRIMARY KEY,
+    file_id    INTEGER REFERENCES files(id),
+    type       INTEGER NOT NULL DEFAULT 0,
+    request_id INTEGER,
+    added      INTEGER NOT NULL DEFAULT 0
 );
 

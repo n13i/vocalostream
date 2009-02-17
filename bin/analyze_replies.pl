@@ -99,9 +99,9 @@ foreach(@updates)
             undef, $url
         );
         $dbh->do(
-            'INSERT INTO programs (file_id, type) ' .
+            'INSERT INTO programs (file_id, type, request_id) ' .
             'VALUES ((SELECT id FROM files WHERE url = ?), ?)',
-            undef, $url, 1
+            undef, $url, 1, $_->{id}
         );
     }
 }
