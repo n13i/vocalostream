@@ -26,8 +26,20 @@ my $twit = Net::Twitter->new(
     password => $conf->{twitter}->{password},
 );
 
-print "==> replies:\n";
-my $replies = $twit->replies;
+my $recent = $dbh->selectrow_hashref(
+    'SELECT status_id FROM replies ORDER BY status_id DESC LIMIT 1'
+);
+
+printf "==> replies since %d ", $recent->{status_id};
+my @replies = ();
+for(my $i = 0; $i < 3; $i++)
+{
+    printf ".";
+    my $r = $twit->replies({page => $i+1, since_id => $recent->{status_id}});
+    last if($#{$r} < 0);
+    push(@replies, @{$r});
+}
+printf "\n";
 
 my $sth = $dbh->prepare(
     'INSERT OR IGNORE INTO replies ' .
@@ -35,9 +47,10 @@ my $sth = $dbh->prepare(
     'VALUES (?, ?, ?, ?, ?, ?)'
 );
 $dbh->begin_work;
-foreach my $r (reverse @{$replies})
+foreach my $r (sort { $b->{id} <=> $a->{id} } @replies)
 {
-    printf "%s: %s\n", $r->{user}->{screen_name}, $r->{text};
+    printf "[%d] %s: %s\n",
+        $r->{id}, $r->{user}->{screen_name}, $r->{text};
 
     $sth->execute(
         $r->{id},
