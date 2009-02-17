@@ -163,7 +163,7 @@ sub add_playlist
 
     return if($#progs < 0);
 
-    printf "updating MPD database ...\n";
+    printf "* updating MPD database ...\n";
     my $update_time = 0;
     $mpd->updatedb;
     while(defined($mpd->status->updating_db))
@@ -172,11 +172,11 @@ sub add_playlist
         last if($update_time++ >= 30);
     }
 
-    printf "add to MPD playlist ...\n";
+    printf "* add to MPD playlist ...\n";
     foreach my $p (@progs)
     {
         #print Dump($p);
-        printf " [%d] %s %s\n", $p->{id}, $p->{filename}, $p->{title};
+        printf "* [%d] %s %s\n", $p->{id}, $p->{filename}, $p->{title};
 
         if($p->{type} == 1)
         {
@@ -196,7 +196,7 @@ sub add_playlist
                 $mpd->playlist->add($p->{filename});
                 if($pls_length > 0)
                 {
-                    printf " move from %d to %d\n",
+                    printf "* move from %d to %d\n",
                         $pls_length, $current_pos+1;
                     $mpd->playlist->move($pls_length, $current_pos+1);
                 }
