@@ -139,7 +139,7 @@ sub add_playlist
     }
     else
     {
-        $sql_reqmode = 'ORDER BY id';
+        $sql_reqmode = 'AND type = 0 ORDER BY id';
     }
 
     # ファイルが既に存在し、プレイリストに追加済みでないものを選択
