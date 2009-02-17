@@ -30,7 +30,7 @@ my $recent = $dbh->selectrow_hashref(
     'SELECT status_id FROM replies ORDER BY status_id DESC LIMIT 1'
 );
 
-printf "==> replies since %d ", $recent->{status_id};
+printf "* getting replies since %d ", $recent->{status_id};
 my @replies = ();
 for(my $i = 0; $i < 3; $i++)
 {
@@ -39,7 +39,7 @@ for(my $i = 0; $i < 3; $i++)
     last if($#{$r} < 0);
     push(@replies, @{$r});
 }
-printf "\n";
+printf " done\n";
 
 my $sth = $dbh->prepare(
     'INSERT OR IGNORE INTO replies ' .
