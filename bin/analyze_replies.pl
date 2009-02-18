@@ -100,7 +100,7 @@ foreach(@updates)
         );
         $dbh->do(
             'INSERT INTO programs (file_id, type, request_id) ' .
-            'VALUES ((SELECT id FROM files WHERE url = ?), ?)',
+            'VALUES ((SELECT id FROM files WHERE url = ?), ?, ?)',
             undef, $url, 1, $_->{id}
         );
     }
