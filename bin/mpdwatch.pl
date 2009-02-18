@@ -175,7 +175,10 @@ sub add_playlist
     }
     $sth->finish; undef $sth;
 
-    return undef if($#progs < 0);
+    if($#progs < 0)
+    {
+        return undef;
+    }
 
     printf "* updating MPD database ...\n";
     my $update_time = 0;
