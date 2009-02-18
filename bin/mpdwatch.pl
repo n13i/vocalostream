@@ -62,8 +62,10 @@ while($mainloop)
     if($status->state eq 'play' &&
        $status->time->seconds_sofar < $check_interval)
     {
-        # 再生時間が check_interval 未満であれば
-        # リクエスト曲を順に 1 曲のみ追加
+        # ・処理中に次の曲へできるだけ進まないように
+        #   曲の冒頭で追加処理を行う
+        # ・再生時間が check_interval 未満であれば
+        #   リクエスト曲を順に 1 曲のみ追加
         &add_playlist({request_mode => 1});
     }
 
@@ -93,8 +95,6 @@ while($mainloop)
     {
         $current_id = $song->id;
 
-        printf "%d (id=%d) %s\n", $song->pos, $song->id, $song->file;
-
         my $r = $dbh->selectrow_hashref(
             'SELECT url, title, username FROM files WHERE filename = ? LIMIT 1',
             undef, $song->file
@@ -116,6 +116,9 @@ while($mainloop)
         {
             $twit->update(encode('utf8', $post));
         }
+
+        printf "* pos=%d, id=%d, file=%s\n",
+            $song->pos, $song->id, $song->file;
     }
 }
 
