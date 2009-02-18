@@ -124,6 +124,7 @@ while($mainloop)
 
         if(defined($request_info))
         {
+            print "request_info:\n";
             print Dump($request_info);
             $request_info = undef;
         }
