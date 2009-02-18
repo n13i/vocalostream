@@ -54,6 +54,8 @@ my $add_interval = $conf->{playlist}->{add_interval};
 
 my $next_addtime = 0; #time + $add_interval;
 
+printf "starting mpdwatch %s\n", '$Id$';
+
 while($mainloop)
 {
     my $status = $mpd->status;
