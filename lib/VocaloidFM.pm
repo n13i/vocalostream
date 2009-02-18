@@ -8,6 +8,7 @@ use base qw(Exporter);
 our @EXPORT = qw(load_config get_config);
 
 use FindBin qw($Bin);
+use YAML;
 
 my $instance;
 
