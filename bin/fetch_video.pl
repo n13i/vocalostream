@@ -240,10 +240,12 @@ sub fetch_nicovideo
     if(defined($username))
     {
         $artist = $username;
+        printf "got username: %s\n", $username;
     }
 
     my $cmd_file = $conf->{cmds}->{file};
     my $mimetype = `$cmd_file -b -i $file_source`;
+    chomp $mimetype;
     printf "mime type: %s\n", $mimetype;
 
     printf "converting %s ...\n", $title;
