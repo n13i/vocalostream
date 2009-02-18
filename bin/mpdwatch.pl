@@ -58,10 +58,11 @@ while($mainloop)
     my $status = $mpd->status;
 
     # リクエスト曲追加処理
+    # 1 曲再生につき 1 曲だけ追加するようにする
     if($status->state eq 'play' &&
-       $status->time->seconds_left < $check_interval)
+       $status->time->seconds_sofar < $check_interval)
     {
-        # 残り時間が check_interval 未満であれば
+        # 再生時間が check_interval 未満であれば
         # リクエスト曲を順に 1 曲のみ追加
         &add_playlist({request_mode => 1});
     }
@@ -91,6 +92,8 @@ while($mainloop)
     if($song->id != $current_id)
     {
         $current_id = $song->id;
+
+        printf "%d (id=%d) %s\n", $song->pos, $song->id, $song->file;
 
         my $r = $dbh->selectrow_hashref(
             'SELECT url, title, username FROM files WHERE filename = ? LIMIT 1',
