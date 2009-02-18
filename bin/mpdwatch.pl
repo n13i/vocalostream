@@ -68,11 +68,11 @@ while($mainloop)
         # ・再生時間が check_interval 未満であれば
         #   リクエスト曲を順に 1 曲のみ追加
         $request_info = &add_playlist({request_mode => 1});
-        if(defined($request_info))
-        {
-            print "add request:\n";
-            print Dump($request_info);
-        }
+#        if(defined($request_info))
+#        {
+#            print "add request:\n";
+#            print Dump($request_info);
+#        }
     }
 
     # リクエスト曲以外の追加処理
