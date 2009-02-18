@@ -40,6 +40,7 @@ if(defined(my $song = $mpd->song))
 {
     $current_id = $song->id;
 }
+my $request_info = undef;
 
 my $mainloop = 1;
 
@@ -66,7 +67,8 @@ while($mainloop)
         #   曲の冒頭で追加処理を行う
         # ・再生時間が check_interval 未満であれば
         #   リクエスト曲を順に 1 曲のみ追加
-        &add_playlist({request_mode => 1});
+        $request_info = &add_playlist({request_mode => 1});
+        print Dump($request_info);
     }
 
     # リクエスト曲以外の追加処理
@@ -119,6 +121,12 @@ while($mainloop)
 
         printf "* pos=%d, id=%d, file=%s\n",
             $song->pos, $song->id, $song->file;
+
+        if(defined($request_info))
+        {
+            print Dump($request_info);
+            $request_info = undef;
+        }
     }
 }
 
@@ -151,11 +159,11 @@ sub add_playlist
     # ファイルが既に存在し、プレイリストに追加済みでないものを選択
     # TODO 初回は added = 1 のものも追加する？
     my $sth = $dbh->prepare(
-        'SELECT programs.id as id, file_id, type, added, ' .
+        'SELECT programs.id as id, file_id, type, request_id, added, ' .
         '       url, title, filename ' .
         'FROM programs ' .
         'LEFT JOIN files ON programs.file_id = files.id ' .
-        'WHERE files.filename IS NOT NULL AND programs.added = 0 ' .
+        'WHERE filename IS NOT NULL AND added = 0 ' .
         $sql_reqmode
     );
     $sth->execute;
@@ -167,7 +175,7 @@ sub add_playlist
     }
     $sth->finish; undef $sth;
 
-    return if($#progs < 0);
+    return undef if($#progs < 0);
 
     printf "* updating MPD database ...\n";
     my $update_time = 0;
@@ -177,6 +185,8 @@ sub add_playlist
         sleep 1;
         last if($update_time++ >= 30);
     }
+
+    my $reqinfo = undef;
 
     printf "* add to MPD playlist ...\n";
     foreach my $p (@progs)
@@ -193,6 +203,15 @@ sub add_playlist
             if(defined(my $song = $mpd->song))
             {
                 $current_pos = $song->pos;
+            }
+
+            # リクエスト者の情報を得ておく
+            if(defined($p->{request_id}))
+            {
+                $reqinfo = $dbh->selectrow_hashref(
+                    'SELECT * FROM replies WHERE id = ? LIMIT 1',
+                    undef, $p->{request_id}
+                );
             }
 
             #printf " MPD playing: [%d/%d]\n", $current_pos+1, $pls_length;
@@ -237,6 +256,8 @@ sub add_playlist
         );
         $dbh->commit;
     }
+
+    return $reqinfo;
 }
 
 sub stop
