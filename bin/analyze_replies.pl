@@ -31,7 +31,8 @@ $dbh->begin_work;
 
 my @updates = ();
 my $sth = $dbh->prepare(
-    'SELECT id, user_screen_name, text FROM replies WHERE state = 0'
+    'SELECT id, user_screen_name, text FROM replies WHERE state = 0 ' .
+    'ORDER BY status_id ASC'
 );
 $sth->execute;
 while(my $row = $sth->fetchrow_hashref)

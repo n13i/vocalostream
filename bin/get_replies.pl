@@ -47,7 +47,7 @@ my $sth = $dbh->prepare(
     'VALUES (?, ?, ?, ?, ?, ?)'
 );
 $dbh->begin_work;
-foreach my $r (sort { $b->{id} <=> $a->{id} } @replies)
+foreach my $r (sort { $a->{id} <=> $b->{id} } @replies)
 {
     printf "[%d] %s: %s\n",
         $r->{id}, $r->{user}->{screen_name}, $r->{text};
