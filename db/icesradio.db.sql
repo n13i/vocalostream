@@ -17,6 +17,7 @@ CREATE TABLE files (
     filename TEXT,
     username TEXT,
     try      INTEGER NOT NULL DEFAULT 0,
+    state    INTEGER NOT NULL DEFAULT 0,
     UNIQUE(url)
 );
 

@@ -117,8 +117,18 @@ while($mainloop)
         {
             $post .= " / " . $r->{username};
         }
-        $post = sprintf "\x{266b} %s (%d:%02d) %s",
+        $post = sprintf "%s (%d:%02d) %s",
             $post, $min, $sec, $r->{url};
+
+        if(defined($request_info))
+        {
+            $post = sprintf "\x{266c} %s : from @%s",
+                $post, $request_info->{user_screen_name};
+        }
+        else
+        {
+            $post = sprintf "\x{266b} %s", $post;
+        }
 
         printf "%s\n%s\n", '-' x 78, $post;
         if($conf->{twitter}->{post_enable} == 1)
