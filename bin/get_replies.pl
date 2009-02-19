@@ -36,8 +36,12 @@ for(my $i = 0; $i < 3; $i++)
 {
     printf ".";
     my $r = $twit->replies({page => $i+1, since_id => $recent->{status_id}});
+
+    last if(!defined($r));
     last if($#{$r} < 0);
+
     push(@replies, @{$r});
+
     last if($#{$r} < 19);
 }
 printf " done\n";
