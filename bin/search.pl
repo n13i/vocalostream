@@ -69,7 +69,7 @@ elsif($mode eq 'tag')
     else
     {
         $url = sprintf 'http://www.nicovideo.jp/tag/%s?page=%d&sort=f',
-            $page, uri_escape_utf8($query)
+            uri_escape_utf8($query), $page
     }
 }
 else
