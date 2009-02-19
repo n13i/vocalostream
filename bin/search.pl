@@ -20,6 +20,7 @@ binmode STDOUT, ':encoding(utf8)';
 
 my $mode = shift @ARGV || die;
 my $query = shift @ARGV || die;
+my $page = shift @ARGV || undef;
 
 $query = decode('utf8', $query);
 
@@ -60,8 +61,16 @@ if($mode eq 'ranking')
 }
 elsif($mode eq 'tag')
 {
-    $url = sprintf 'http://www.nicovideo.jp/tag/%s?sort=f',
-        uri_escape_utf8($query)
+    if(!defined($page) || $page == 1)
+    {
+        $url = sprintf 'http://www.nicovideo.jp/tag/%s?sort=f',
+            uri_escape_utf8($query)
+    }
+    else
+    {
+        $url = sprintf 'http://www.nicovideo.jp/tag/%s?page=%d&sort=f',
+            $page, uri_escape_utf8($query)
+    }
 }
 else
 {
