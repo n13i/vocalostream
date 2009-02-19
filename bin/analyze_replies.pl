@@ -63,11 +63,15 @@ foreach my $s (@updates)
         }
     }
 
+    # 動画 ID を取り出す
     my @urls = $s->{text} =~ m{((?:sm|nm)\d+)}sg;
     if($#urls >= 0)
     {
         $s->{state} = 1;
-        foreach(@urls)
+
+        # 複数同時リクエスト時にはユニークにする
+        my %tmp;
+        foreach(grep(!$tmp{$_}++, @urls))
         {
             my $url = 'http://www.nicovideo.jp/watch/' . $_;
             printf "  got video: %s\n", $url;
