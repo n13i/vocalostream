@@ -63,19 +63,13 @@ while($mainloop)
 
     # リクエスト曲追加処理
     # 1 曲再生につき 1 曲だけ追加するようにする
-    if($status->state eq 'play' &&
-       $status->time->seconds_sofar < $check_interval)
+    if(!defined($request_info))
     {
-        # ・処理中に次の曲へできるだけ進まないように
-        #   曲の冒頭で追加処理を行う
-        # ・再生時間が check_interval 未満であれば
-        #   リクエスト曲を順に 1 曲のみ追加
         $request_info = &add_playlist({request_mode => 1});
-#        if(defined($request_info))
-#        {
-#            print "add request:\n";
-#            print Dump($request_info);
-#        }
+        if(defined($request_info))
+        {
+            printf "request queueing done.\n";
+        }
     }
 
     # リクエスト曲以外の追加処理
@@ -124,6 +118,9 @@ while($mainloop)
         {
             $post = sprintf "\x{266c} %s : from @%s",
                 $post, $request_info->{user_screen_name};
+
+            # 1曲再生中につき1曲リクエスト追加するように
+            $request_info = undef;
         }
         else
         {
@@ -138,13 +135,6 @@ while($mainloop)
 
         printf "* pos=%d, id=%d, file=%s\n",
             $song->pos, $song->id, $song->file;
-
-        if(defined($request_info))
-        {
-            #print "request_info:\n";
-            #print Dump($request_info);
-            $request_info = undef;
-        }
     }
 }
 
