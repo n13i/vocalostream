@@ -153,14 +153,20 @@ sub fetch_nicovideo
         };
     }
 
+    # チェックするタグの情報をセット
+    my @tags_checked = ();
+    foreach(@{$conf->{tagcheck}->{required}})
+    {
+        push(@tags_checked, { type => 1, expr => $_, found => 0 });
+    }
+    foreach(@{$conf->{tagcheck}->{ng}})
+    {
+        push(@tags_checked, { type => -1, expr => $_, found => 0 });
+    }
+
     # タグを取得してチェック
     printf "checking tags ...\n";
     my $tags = VocaloidFM::Download::get_tags($x);
-    my @tags_checked = (
-        { type => 1,  expr => '^音楽$', found => 0 },
-        { type => 1,  expr => $conf->{tagcheck}->{required}, found => 0 },
-        { type => -1, expr => $conf->{tagcheck}->{ng}, found => 0 },
-    );
     foreach my $tag (@{$tags})
     {
         printf "  [%s] %s %s\n",
@@ -183,6 +189,7 @@ sub fetch_nicovideo
         if(($_->{type} == 1 && $_->{found} == 0) ||
            ($_->{type} == -1 && $_->{found} == 1))
         {
+            # 必須タグが見つからない or NG タグが見つかった
             $tags_ok = 0;
             last;
         }
