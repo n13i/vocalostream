@@ -65,16 +65,13 @@ foreach my $f (@files)
     {
         my $result = 0;
         my $res = &fetch_nicovideo($1);
-        print Dump($res);
         if(defined($res))
         {
-            if($res->{status} eq 'ok')
+            print Dump($res);
+            if($res->{result}->{code} > 0)
             {
-                if($res->{embeddable} == 1)
-                {
-                    $result = 1;
-                    if($res->{downloaded} == 1) { sleep 5; }
-                }
+                $result = 1;
+                if($res->{downloaded} == 1) { sleep 5; }
             }
         }
 
@@ -124,7 +121,9 @@ sub fetch_nicovideo
         if($video_id =~ /^$_$/i)
         {
             printf "ERROR: $video_id is in NGlist, skip.\n";
-            return undef;
+            return {
+                result => { code => -1, text => 'in blacklist' },
+            };
         }
     }
 
@@ -132,12 +131,16 @@ sub fetch_nicovideo
     if(!defined($x))
     {
         printf "ERROR: getthumbinfo failed\n";
-        return undef;
+        return {
+            result => { code => -2, text => 'getthumbinfo failed' },
+        };
     }
     if($x->{status} ne 'ok')
     {
         printf "ERROR: status NG\n";
-        return { status => $x->{status} };
+        return {
+            result => { code => -3, text => 'deleted'},
+         };
     }
 
     $x->{thumb}->{title} = decode_entities($x->{thumb}->{title});
@@ -147,9 +150,7 @@ sub fetch_nicovideo
     {
         printf "ERROR: not embeddable\n";
         return {
-            status => $x->{status},
-            embeddable => $x->{thumb}->{embeddable},
-            title => $x->{thumb}->{title},
+            result => { code => -4, text => 'not embeddable' },
         };
     }
 
@@ -207,7 +208,9 @@ sub fetch_nicovideo
     if($tags_ok == 0)
     {
         printf "ERROR: NG due to tags \n";
-        return undef;
+        return {
+            result => { code => -5, text => 'tagcheck failed' },
+        };
     }
 
     my $file_source = sprintf "%s/%s", $conf->{dirs}->{sources}, $video_id;
@@ -224,7 +227,9 @@ sub fetch_nicovideo
         if($@)
         {
             printf "ERROR: %s\n", $@;
-            return undef;
+            return {
+                result => { code => -6, text => $@ },
+            };
         }
         printf "done, takes %d seconds\n", (time - $start_time);
         rename $file_source . '.tmp', $file_source;
@@ -233,7 +238,9 @@ sub fetch_nicovideo
     if(!-f $file_source || -z $file_source)
     {
         printf "ERROR: missing source file\n";
-        return undef;
+        return {
+            result => { code => -6, text => 'missing source file' },
+        };
     }
 
 
@@ -323,7 +330,9 @@ sub fetch_nicovideo
     if(!-f $file_song)
     {
         printf "ERROR: failed to convert\n";
-        return undef;
+        return {
+            result => { code => -7, text => 'failed to convert' },
+        };
     }
 
     printf "running VorbisGain ...\n";
@@ -334,8 +343,7 @@ sub fetch_nicovideo
     printf "done.\n";
 
     return {
-        status => $x->{status},
-        embeddable => $x->{thumb}->{embeddable},
+        result => { code => 1, text => 'success' },
         title => $x->{thumb}->{title},
         filename => $filename_song,
         downloaded => $downloaded,
