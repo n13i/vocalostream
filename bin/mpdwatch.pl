@@ -244,6 +244,7 @@ sub add_playlist
             }
 
             # 再取得
+            $current_pos = $mpd->song->pos;
             @items = $mpd->playlist->as_items;
             my $pls_length = $#items + 1;
 
