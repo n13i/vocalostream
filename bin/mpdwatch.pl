@@ -209,8 +209,6 @@ sub add_playlist
         if($p->{type} == 1)
         {
             # request mode
-            my @items = $mpd->playlist->as_items;
-            my $pls_length = $#items + 1;
             my $current_pos = 0;
             if(defined(my $song = $mpd->song))
             {
@@ -226,6 +224,7 @@ sub add_playlist
 
             # 追加しようとしている曲が既にプレイリストにあるなら削除
             # TODO 非リクエストモードでも同様にする？
+            my @items = $mpd->playlist->as_items;
             foreach my $song (@items)
             {
                 if($song->file eq $p->{filename})
@@ -235,6 +234,10 @@ sub add_playlist
                     $mpd->playlist->delete($song->pos);
                 }
             }
+
+            # 再取得
+            @items = $mpd->playlist->as_items;
+            my $pls_length = $#items + 1;
 
             # リクエスト者の情報を得ておく
             if(defined($p->{request_id}))
