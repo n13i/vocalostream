@@ -218,6 +218,14 @@ sub add_playlist
                 if($p->{filename} eq $mpd->song->file)
                 {
                     printf "* %s is now playing, skip this.\n", $p->{filename};
+
+                    # FIXME
+                    $dbh->begin_work;
+                    $dbh->do(
+                        'UPDATE programs SET added = 1 WHERE id = ?',
+                        undef, $p->{id},
+                    );
+                    $dbh->commit;
                     next;
                 }
             }
