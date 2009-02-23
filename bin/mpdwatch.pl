@@ -225,6 +225,7 @@ sub add_playlist
             }
 
             # 追加しようとしている曲が既にプレイリストにあるなら削除
+            # TODO 非リクエストモードでも同様にする？
             foreach my $song (@items)
             {
                 if($song->file eq $p->{filename})
