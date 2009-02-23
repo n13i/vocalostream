@@ -217,6 +217,24 @@ sub add_playlist
                 $current_pos = $song->pos;
             }
 
+            # 追加しようとしている曲が現在再生中ならスルー
+            if($p->{filename} eq $song->file)
+            {
+                printf "* %s is now playing, skip this.\n", $p->{filename};
+                next;
+            }
+
+            # 追加しようとしている曲が既にプレイリストにあるなら削除
+            foreach my $song (@items)
+            {
+                if($song->file eq $p->{filename})
+                {
+                    printf "* %s exists in playlist (pos=%d), so delete it.\n",
+                        $p->{filename}, $song->pos;
+                    $mpd->playlist->delete($song->pos);
+                }
+            }
+
             # リクエスト者の情報を得ておく
             if(defined($p->{request_id}))
             {
