@@ -63,7 +63,8 @@ while($mainloop)
 
     # リクエスト曲追加処理
     # 1 曲再生につき 1 曲だけ追加するようにする
-    if(!defined($request_info))
+    # 残り時間が少ない場合には追加しないように
+    if(!defined($request_info) && $status->time->seconds_left >= 30)
     {
         $request_info = &add_playlist({request_mode => 1});
         if(defined($request_info))
