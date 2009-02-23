@@ -69,7 +69,8 @@ while($mainloop)
         $request_info = &add_playlist({request_mode => 1});
         if(defined($request_info))
         {
-            printf "request queueing done.\n";
+            printf "request from @%s: queueing done.\n",
+                $request_info->{user_screen_name};
         }
     }
 
