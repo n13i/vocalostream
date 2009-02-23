@@ -215,13 +215,13 @@ sub add_playlist
             if(defined(my $song = $mpd->song))
             {
                 $current_pos = $song->pos;
-            }
 
-            # 追加しようとしている曲が現在再生中ならスルー
-            if($p->{filename} eq $song->file)
-            {
-                printf "* %s is now playing, skip this.\n", $p->{filename};
-                next;
+                # 追加しようとしている曲が現在再生中ならスルー
+                if($p->{filename} eq $mpd->song->file)
+                {
+                    printf "* %s is now playing, skip this.\n", $p->{filename};
+                    next;
+                }
             }
 
             # 追加しようとしている曲が既にプレイリストにあるなら削除
