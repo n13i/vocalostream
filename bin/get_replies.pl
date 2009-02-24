@@ -30,11 +30,11 @@ my $recent = $dbh->selectrow_hashref(
     'SELECT status_id FROM replies ORDER BY status_id DESC LIMIT 1'
 );
 
-printf "* getting replies since %d ", $recent->{status_id};
+#printf "* getting replies since %d ", $recent->{status_id};
 my @replies = ();
 for(my $i = 0; $i < 3; $i++)
 {
-    printf ".";
+#    printf ".";
     my $r = $twit->replies({page => $i+1, since_id => $recent->{status_id}});
 
     last if(!defined($r));
@@ -44,7 +44,7 @@ for(my $i = 0; $i < 3; $i++)
 
     last if($#{$r} < 19);
 }
-printf " done\n";
+#printf " done\n";
 
 my $sth = $dbh->prepare(
     'INSERT OR IGNORE INTO replies ' .
