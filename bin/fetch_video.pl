@@ -67,7 +67,7 @@ foreach my $f (@files)
         my $res = &fetch_nicovideo($1);
         if(defined($res))
         {
-            print Dump($res);
+            #print Dump($res);
             if($res->{result}->{code} > 0)
             {
                 $result = 1;
@@ -116,102 +116,18 @@ sub fetch_nicovideo
 
     printf "target: %s\n", $video_id;
 
-    foreach(@{$conf->{nglist}})
+    my $status = $dl->check_status($video_id);
+    if($status->{code} < 0)
     {
-        if($video_id =~ /^$_$/i)
-        {
-            printf "ERROR: $video_id is in NGlist, skip.\n";
-            return {
-                result => { code => -1, text => 'in blacklist' },
-            };
-        }
-    }
-
-    my $x = $dl->get_thumbinfo($video_id);
-    if(!defined($x))
-    {
-        printf "ERROR: getthumbinfo failed\n";
+        printf "ERROR: %s is rejected by status check\n", $video_id; 
         return {
-            result => { code => -2, text => 'getthumbinfo failed' },
-        };
-    }
-    if($x->{status} ne 'ok')
-    {
-        printf "ERROR: status NG\n";
-        return {
-            result => { code => -3, text => 'deleted'},
-         };
-    }
-
-    $x->{thumb}->{title} = decode_entities($x->{thumb}->{title});
-    printf "%s\n", $x->{thumb}->{title};
- 
-    if($x->{thumb}->{embeddable} == 0)
-    {
-        printf "ERROR: not embeddable\n";
-        return {
-            result => { code => -4, text => 'not embeddable' },
+            result => $status,
         };
     }
 
-    # チェックするタグの情報をセット
-    my @tags_checked = ();
-    foreach(@{$conf->{tagcheck}->{required}})
-    {
-        push(@tags_checked, { type => 1, expr => $_, found => 0 });
-    }
-    foreach(@{$conf->{tagcheck}->{ng}})
-    {
-        push(@tags_checked, { type => -1, expr => $_, found => 0 });
-    }
+    printf "%s is accepted by status check\n", $video_id; 
 
-    # タグを取得してチェック
-    printf "checking tags ...\n";
-    my $tags = VocaloidFM::Download::get_tags($x);
-    foreach my $tag (@{$tags})
-    {
-        printf "  [%s] %s %s\n",
-            $tag->{domain}, ($tag->{lock} == 1 ? '*' : ' '), $tag->{content};
-        my $t = $tag->{content};
-        $t =~ tr/Ａ-Ｚａ-ｚ/A-Za-z/;
-        foreach(@tags_checked)
-        {
-            my $expr = $_->{expr};
-            if($t =~ /$expr/i)
-            {
-                $_->{found} = 1;
-            }
-        }
-    }
-
-    my $tags_ok = 1;
-    foreach(@tags_checked)
-    {
-        if(($_->{type} == 1 && $_->{found} == 0) ||
-           ($_->{type} == -1 && $_->{found} == 1))
-        {
-            # 必須タグが見つからない or NG タグが見つかった
-            $tags_ok = 0;
-            last;
-        }
-    }
-
-    # ホワイトリストにあるものは許可
-    foreach(@{$conf->{whitelist}})
-    {
-        if($video_id =~ /^$_$/i)
-        {
-            $tags_ok = 1;
-        }
-    }
-
-    if($tags_ok == 0)
-    {
-        printf "ERROR: NG due to tags \n";
-        return {
-            result => { code => -5, text => 'tagcheck failed' },
-        };
-    }
+    my $x = $status->{thumbinfo};
 
     my $file_source = sprintf "%s/%s", $conf->{dirs}->{sources}, $video_id;
     printf "source: %s\n", $file_source;

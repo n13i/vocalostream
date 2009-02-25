@@ -51,6 +51,125 @@ sub download
     $self->{nicovideo}->download($video_id, $file);
 }
 
+sub check_status
+{
+    my $self = shift;
+    my $video_id = shift;
+
+    my $conf = VocaloidFM::get_config;
+
+    foreach(@{$conf->{nglist}})
+    {
+        if($video_id =~ /^$_$/i)
+        {
+            return {
+                code => -1,
+                text => 'in blacklist',
+                tags => undef,
+                thumbinfo => undef,
+            };
+        }
+    }
+
+    my $x = $self->get_thumbinfo($video_id);
+    if(!defined($x))
+    {
+        return {
+            code => -2,
+            text => 'getthumbinfo failed',
+            tags => undef,
+            thumbinfo => undef,
+        };
+    }
+    if($x->{status} ne 'ok')
+    {
+        return {
+            code => -3,
+            text => 'deleted',
+            tags => undef,
+            thumbinfo => $x,
+        };
+    }
+
+    $x->{thumb}->{title} = decode_entities($x->{thumb}->{title});
+    printf "%s\n", $x->{thumb}->{title};
+ 
+    if($x->{thumb}->{embeddable} == 0)
+    {
+        return {
+            code => -4,
+            text => 'not embeddable',
+            tags => undef,
+            thumbinfo => $x,
+        };
+    }
+
+    # チェックするタグの情報をセット
+    my @tags_checked = ();
+    foreach(@{$conf->{tagcheck}->{required}})
+    {
+        push(@tags_checked, { type => 1, expr => $_, found => 0 });
+    }
+    foreach(@{$conf->{tagcheck}->{ng}})
+    {
+        push(@tags_checked, { type => -1, expr => $_, found => 0 });
+    }
+
+    # タグを取得してチェック
+    my $tags = VocaloidFM::Download::get_tags($x);
+    foreach my $tag (@{$tags})
+    {
+        my $t = $tag->{content};
+        $t =~ tr/Ａ-Ｚａ-ｚ/A-Za-z/;
+        foreach(@tags_checked)
+        {
+            my $expr = $_->{expr};
+            if($t =~ /$expr/i)
+            {
+                $_->{found} = 1;
+            }
+        }
+    }
+
+    my $tags_ok = 1;
+    foreach(@tags_checked)
+    {
+        if(($_->{type} == 1 && $_->{found} == 0) ||
+           ($_->{type} == -1 && $_->{found} == 1))
+        {
+            # 必須タグが見つからない or NG タグが見つかった
+            $tags_ok = 0;
+            last;
+        }
+    }
+
+    # ホワイトリストにあるものは許可
+    foreach(@{$conf->{whitelist}})
+    {
+        if($video_id =~ /^$_$/i)
+        {
+            $tags_ok = 1;
+        }
+    }
+
+    if($tags_ok == 0)
+    {
+        return {
+            code => -5,
+            text => 'tagcheck failed',
+            tags => $tags,
+            thumbinfo => $x,
+        };
+    }
+
+    return {
+        code => 1,
+        text => 'ok',
+        tags => $tags,
+        thumbinfo => $x,
+    };
+}
+
 sub get_username
 {
     my $self = shift;
