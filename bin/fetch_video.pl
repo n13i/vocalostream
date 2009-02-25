@@ -119,7 +119,8 @@ sub fetch_nicovideo
     my $status = $dl->check_status($video_id);
     if($status->{code} < 0)
     {
-        printf "ERROR: %s is rejected by status check\n", $video_id; 
+        printf "ERROR: %s is rejected by status check: %s\n",
+            $video_id, $status->{text}; 
         return {
             result => $status,
         };
