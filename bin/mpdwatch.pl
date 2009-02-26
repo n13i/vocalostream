@@ -124,13 +124,17 @@ while($mainloop)
 
         if(defined($request_info))
         {
-            $post = sprintf "\x{266c} %s : from @%s",
+            #$post = sprintf "\x{266c} %s : from @%s",
+            $post = sprintf "\x{266c} %s", $post;
                 $post, $request_info->{user_screen_name};
 
             my $text = $request_info->{text};
             if($text =~ m{^\@vocaloid_fm\s+(.+?)\s*(?:http://|(?:sm|nm)\d+)})
             {
-                $post .= ' “' . $1 . '”';
+                $post = sprintf "%s : from @%s “%s”",
+                    $post,
+                    $request_info->{user_screen_name},
+                    $1;
             }
 
             # 1曲再生中につき1曲リクエスト追加するように
