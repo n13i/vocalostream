@@ -51,7 +51,7 @@ while(my $row = $sth->fetchrow_hashref)
 $sth->finish; undef $sth;
 
 $sth = $dbh->prepare(
-    'UPDATE files SET title = ?, filename = ?, username = ?, ' .
+    'UPDATE files SET title = ?, filename = ?, username = ?, pname = ?, ' .
     "last_checked = strftime('%s', 'now'), " .
     'try = try + 1 WHERE id = ?'
 );
@@ -84,12 +84,14 @@ foreach my $f (@files)
                 $res->{title},
                 $res->{filename},
                 $res->{username},
+                $res->{pname},
                 $f->{id},
             );
         }
         else
         {
             $sth->execute(
+                undef,
                 undef,
                 undef,
                 undef,
