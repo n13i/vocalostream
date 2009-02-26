@@ -125,15 +125,20 @@ while($mainloop)
         if(defined($request_info))
         {
             #$post = sprintf "\x{266c} %s : from @%s",
+            #    $post, $request_info->{user_screen_name};
             $post = sprintf "\x{266c} %s", $post;
 
             my $text = $request_info->{text};
-            if($text =~ m{^\@vocaloid_fm\s+(.+?)\s*[^\s]*(?:sm|nm)\d+})
+            if($text =~ m{^\@vocaloid_fm\s+(.*?)\s*[^\s]*(?:sm|nm)\d+})
             {
-                $post = sprintf "%s : from @%s “%s”",
-                    $post,
-                    $request_info->{user_screen_name},
-                    $1;
+                my $comment = $1;
+                if($comment ne '')
+                {
+                    $post = sprintf "%s : from @%s “%s”",
+                        $post,
+                        $request_info->{user_screen_name},
+                        $comment;
+                }
             }
 
             # 1曲再生中につき1曲リクエスト追加するように
