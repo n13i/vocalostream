@@ -128,7 +128,7 @@ while($mainloop)
             $post = sprintf "\x{266c} %s", $post;
 
             my $text = $request_info->{text};
-            if($text =~ m{^\@vocaloid_fm\s+(.+?)\s*(?:http://|(?:sm|nm)\d+)})
+            if($text =~ m{^\@vocaloid_fm\s+(.+?)\s*[^\s]*(?:sm|nm)\d+})
             {
                 $post = sprintf "%s : from @%s “%s”",
                     $post,
