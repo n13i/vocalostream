@@ -126,7 +126,6 @@ while($mainloop)
         {
             #$post = sprintf "\x{266c} %s : from @%s",
             $post = sprintf "\x{266c} %s", $post;
-                $post, $request_info->{user_screen_name};
 
             my $text = $request_info->{text};
             if($text =~ m{^\@vocaloid_fm\s+(.+?)\s*(?:http://|(?:sm|nm)\d+)})
