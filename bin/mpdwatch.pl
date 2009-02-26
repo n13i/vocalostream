@@ -134,6 +134,15 @@ while($mainloop)
                 my $comment = $1;
                 if($comment ne '')
                 {
+                    my $rem_len = 140;
+                    $rem_len -= length($post);
+                    $rem_len -= length($request_info->{user_screen_name});
+                    $rem_len -= 12;
+                    if(length($comment) > $rem_len)
+                    {
+                        $comment = substr($comment, 0, $rem_len-1) . '…';
+                    }
+
                     $post = sprintf "%s : from @%s “%s”",
                         $post,
                         $request_info->{user_screen_name},
