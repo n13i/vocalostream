@@ -120,6 +120,14 @@ sub fetch_nicovideo
     printf "target: %s\n", $video_id;
 
     my $status = $dl->check_status($video_id);
+    if(!defined($status))
+    {
+        printf "ERROR: status check failed\n";
+        return undef;
+    }
+
+    printf "%s\n", $status->{thumbinfo}->{thumb}->{title};
+
     if($status->{code} < 0)
     {
         printf "ERROR: %s is rejected by status check: %s\n",
