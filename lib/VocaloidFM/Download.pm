@@ -108,10 +108,12 @@ sub check_status
     my @tags_checked = ();
     foreach(@{$conf->{tagcheck}->{required}})
     {
+        printf "REQUIRED: %s\n", $_;
         push(@tags_checked, { type => 1, expr => $_, found => 0 });
     }
     foreach(@{$conf->{tagcheck}->{ng}})
     {
+        printf "NG: %s\n", $_;
         push(@tags_checked, { type => -1, expr => $_, found => 0 });
     }
 

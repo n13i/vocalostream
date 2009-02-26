@@ -11,13 +11,15 @@ CREATE TABLE replies (
 );
 
 CREATE TABLE files (
-    id       INTEGER PRIMARY KEY,
-    url      TEXT NOT NULL,
-    title    TEXT,
-    filename TEXT,
-    username TEXT,
-    try      INTEGER NOT NULL DEFAULT 0,
-    state    INTEGER NOT NULL DEFAULT 0,
+    id           INTEGER PRIMARY KEY,
+    url          TEXT NOT NULL,
+    title        TEXT,
+    filename     TEXT,
+    username     TEXT,
+    pname        TEXT,
+    try          INTEGER NOT NULL DEFAULT 0,
+    state        INTEGER NOT NULL DEFAULT 0,
+    last_checked TIMESTAMP,
     UNIQUE(url)
 );
 

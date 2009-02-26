@@ -13,6 +13,7 @@ use YAML;
 use Encode;
 
 use VocaloidFM;
+use VocaloidFM::Download;
 
 binmode STDOUT, ':encoding(utf8)';
 
@@ -159,7 +160,7 @@ sub add_playlist
     my $sql_reqmode = '';
     if($arg->{request_mode} == 1)
     {
-        $sql_reqmode = 'AND type = 1 ORDER BY id LIMIT 1';
+        $sql_reqmode = 'AND type = 1 ORDER BY id';
     }
     else
     {
@@ -170,7 +171,7 @@ sub add_playlist
     # TODO 初回は added = 1 のものも追加する？
     my $sth = $dbh->prepare(
         'SELECT programs.id as id, file_id, type, request_id, added, ' .
-        '       url, title, filename ' .
+        '       url, title, filename, state, last_checked ' .
         'FROM programs ' .
         'LEFT JOIN files ON programs.file_id = files.id ' .
         'WHERE filename IS NOT NULL AND added = 0 ' .
@@ -190,6 +191,56 @@ sub add_playlist
         return undef;
     }
 
+    # ステータスチェック
+    my $dl = VocaloidFM::Download->new;
+    printf "* checking video statuses ...\n";
+    foreach my $p (@progs)
+    {
+        if(time > $p->{last_checked}+$conf->{playlist}->{statuscheck_interval})
+        {
+            my $video_id = undef;
+            if($p->{url} =~ m{watch/((?:sm|nm)\d+)$})
+            {
+                $video_id = $1;
+            }
+            else
+            {
+                printf "! can't get video id: %s\n", $p->{url};
+                $p->{state} = -99;
+                next;
+            }
+
+            my $s = $dl->check_status($video_id);
+            if($s->{code} < 0)
+            {
+                printf "! %s: status error: %s\n", $video_id, $s->{text};
+            }
+            else
+            {
+                printf "* %s: status OK\n", $video_id;
+            }
+
+            # TODO 投稿者名も再取得？
+            # そうするとタグの書き換えも必要になる
+    
+            # タグを調べて P 名を特定
+            my $pname = undef;
+
+            $dbh->begin_work;
+            $dbh->do(
+                'UPDATE files SET ' .
+                'pname = ?, ' .
+                'state = ?, ' .
+                "last_checked = strftime('%s', 'now') " .
+                'WHERE id = ?',
+                undef, $pname, $s->{code}, $p->{file_id},
+            );
+            $dbh->commit;
+
+            $p->{state} = $s->{code};
+        }
+    }
+
     printf "* updating MPD database ...\n";
     my $update_time = 0;
     $mpd->updatedb;
@@ -207,7 +258,21 @@ sub add_playlist
         #print Dump($p);
         printf "* [%d] %s %s\n", $p->{id}, $p->{filename}, $p->{title};
 
-        if($p->{type} == 1)
+        if($p->{state} < 0)
+        {
+            printf "* %s is rejected by status check, skip this.\n",
+                $p->{filename};
+
+            $dbh->begin_work;
+            $dbh->do(
+                'UPDATE programs SET added = -1 WHERE id = ?',
+                undef, $p->{id},
+            );
+            $dbh->commit;
+
+            next;
+        }
+        elsif($p->{type} == 1)
         {
             # request mode
             my $current_pos = 0;
@@ -223,7 +288,7 @@ sub add_playlist
                     # FIXME
                     $dbh->begin_work;
                     $dbh->do(
-                        'UPDATE programs SET added = 1 WHERE id = ?',
+                        'UPDATE programs SET added = -1 WHERE id = ?',
                         undef, $p->{id},
                     );
                     $dbh->commit;
@@ -277,6 +342,16 @@ sub add_playlist
             }
 
             # TODO リクエストで追加した曲の削除は？
+
+            $dbh->begin_work;
+            $dbh->do(
+                'UPDATE programs SET added = 1 WHERE id = ?',
+                undef, $p->{id},
+            );
+            $dbh->commit;
+
+            # リクエストモードでは一曲追加したら終わり
+            last;
         }
         else
         {
@@ -291,14 +366,13 @@ sub add_playlist
                 printf "ERROR while adding: %s\n", $@;
                 next;
             }
+            $dbh->begin_work;
+            $dbh->do(
+                'UPDATE programs SET added = 1 WHERE id = ?',
+                undef, $p->{id},
+            );
+            $dbh->commit;
         }
-
-        $dbh->begin_work;
-        $dbh->do(
-            'UPDATE programs SET added = 1 WHERE id = ?',
-            undef, $p->{id},
-        );
-        $dbh->commit;
     }
 
     return $reqinfo;

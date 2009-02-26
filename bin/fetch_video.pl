@@ -52,6 +52,7 @@ $sth->finish; undef $sth;
 
 $sth = $dbh->prepare(
     'UPDATE files SET title = ?, filename = ?, username = ?, ' .
+    "last_checked = strftime('%s', 'now'), " .
     'try = try + 1 WHERE id = ?'
 );
 my $n = 0;
