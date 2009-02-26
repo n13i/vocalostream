@@ -246,6 +246,8 @@ sub add_playlist
             $dbh->commit;
 
             $p->{state} = $s->{code};
+
+            sleep 5
         }
     }
 
