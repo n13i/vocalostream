@@ -196,7 +196,8 @@ sub add_playlist
     printf "* checking video statuses ...\n";
     foreach my $p (@progs)
     {
-        if(time > $p->{last_checked}+$conf->{playlist}->{statuscheck_interval})
+        my $last_checked = $p->{last_checked} || 0;
+        if(time > $last_checked + $conf->{playlist}->{statuscheck_interval})
         {
             my $video_id = undef;
             if($p->{url} =~ m{watch/((?:sm|nm)\d+)$})
