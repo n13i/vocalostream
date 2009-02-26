@@ -92,7 +92,7 @@ sub check_status
     }
 
     $x->{thumb}->{title} = decode_entities($x->{thumb}->{title});
-    printf "%s\n", $x->{thumb}->{title};
+    #printf "%s\n", $x->{thumb}->{title};
  
     if($x->{thumb}->{embeddable} == 0)
     {
@@ -220,6 +220,57 @@ sub get_thumbinfo
     my $x = $xs->XMLin($res->decoded_content);
 
     return $x;
+}
+
+sub get_pname
+{
+    my $self = shift;
+    my $username = shift || return undef;
+    my $tags = shift || return undef;
+
+    my $conf = VocaloidFM::get_config;
+
+    # P 名テーブルを用意
+    open FH, '<:encoding(utf8)', $conf->{pname} or return undef;
+    my $pname_table = YAML::Load(join('', <FH>));
+    close FH;
+
+    if(!defined(${$pname_table}{$username}))
+    {
+        return undef;
+    }
+
+    my $ptag_cand = ${$pname_table}{$username};
+    my @ptags = ();
+    if(ref($ptag_cand) eq 'ARRAY')
+    {
+        @ptags = @{$ptag_cand};
+    }
+    else
+    {
+        push(@ptags, $ptag_cand);
+    }
+
+    my $pname = undef;
+    foreach my $p (@ptags)
+    {
+        my $p_norm = $p;
+        $p_norm =~ tr/Ａ-Ｚａ-ｚ/A-Za-z/;
+
+        foreach(@{$tags})
+        {
+            my $t = $_->{content};
+            $t =~ tr/Ａ-Ｚａ-ｚ/A-Za-z/;
+
+            if(lc($t) eq lc($p_norm))
+            {
+                $pname = $p;
+                last;
+            }
+        }
+    }
+
+    return $pname;
 }
 
 # static

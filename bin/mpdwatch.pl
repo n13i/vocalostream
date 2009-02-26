@@ -102,7 +102,8 @@ while($mainloop)
         $current_id = $song->id;
 
         my $r = $dbh->selectrow_hashref(
-            'SELECT url, title, username FROM files WHERE filename = ? LIMIT 1',
+            'SELECT url, title, username, pname FROM files ' .
+            'WHERE filename = ? LIMIT 1',
             undef, $song->file
         );
 
@@ -113,6 +114,10 @@ while($mainloop)
         if(defined($r->{username}))
         {
             $post .= " / " . $r->{username};
+            if(defined($r->{pname}))
+            {
+                $post .= ' (' . $r->{pname} . ')';
+            }
         }
         $post = sprintf "%s (%d:%02d) %s",
             $post, $min, $sec, $r->{url};
@@ -223,9 +228,10 @@ sub add_playlist
 
             # TODO 投稿者名も再取得？
             # そうするとタグの書き換えも必要になる
+            my $username = $dl->get_username($video_id);
     
             # タグを調べて P 名を特定
-            my $pname = undef;
+            my $pname = $dl->get_pname($username, $s->{tags});
 
             $dbh->begin_work;
             $dbh->do(

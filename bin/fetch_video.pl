@@ -169,10 +169,18 @@ sub fetch_nicovideo
     # 投稿者名取得
     my $username = $dl->get_username($video_id);
     my $artist = '';
+    my $pname = undef;
     if(defined($username))
     {
         $artist = $username;
         printf "got username: %s\n", $username;
+
+        $pname = $dl->get_pname($username, $status->{tags});
+        if(defined($pname))
+        {
+            printf "got pname: %s\n", $pname;
+            $artist .= ' (' . $pname . ')';
+        }
     }
 
     my $cmd_file = $conf->{cmds}->{file};
@@ -266,6 +274,7 @@ sub fetch_nicovideo
         filename => $filename_song,
         downloaded => $downloaded,
         username => $username,
+        pname => $pname,
     };
 }
 
