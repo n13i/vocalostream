@@ -16,6 +16,7 @@ binmode STDOUT, ':encoding(utf8)';
 my $conf = load_config;
 
 my $post = $ARGV[0] || die;
+$post = decode('utf-8', $post);
 
 my $twit = Net::Twitter->new(
     username => $conf->{twitter}->{username},
