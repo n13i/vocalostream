@@ -271,7 +271,7 @@ sub add_playlist
 
             $p->{state} = $s->{code};
 
-            sleep 5
+            sleep 3
         }
     }
 
