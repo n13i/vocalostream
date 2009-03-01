@@ -26,20 +26,25 @@ my $url  = shift @ARGV || '';
 &usage if($type !~ /^\d+$/);
 &usage if($url !~ m{^http://www\.nicovideo\.jp/watch/\w{2}\d+$});
 
-printf "%d %s\n", $type, $url;
+#printf "%d %s\n", $type, $url;
 
-my $r = $dbh->do(
+my $r1 = $dbh->do(
     'INSERT OR IGNORE INTO files (url) VALUES (?)',
     undef, $url
 );
-printf "add file: %s\n", ($r == 1 ? 'ok' : 'ignored (maybe already exists)');
+#printf "add file: %s\n", ($r == 1 ? 'ok' : 'ignored (maybe already exists)');
 
-$r = $dbh->do(
+my $r2 = $dbh->do(
     'INSERT INTO programs (file_id, type) ' .
     'VALUES ((SELECT id FROM files WHERE url = ?), ?)',
     undef, $url, $type
 );
-printf "add program: %s\n", ($r == 1 ? 'ok' : 'failed');
+#printf "add program: %s\n", ($r == 1 ? 'ok' : 'failed');
+
+printf "[%s] %d: %s\n",
+    ($r2 == 1 ? ($r1 == 1 ? 'O' : 'C') : 'X'),
+    $type,
+    $url;
 
 exit;
 
