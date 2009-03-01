@@ -42,7 +42,7 @@ my $r2 = $dbh->do(
 #printf "add program: %s\n", ($r == 1 ? 'ok' : 'failed');
 
 printf "[%s] %d: %s\n",
-    ($r2 == 1 ? ($r1 == 1 ? 'O' : 'C') : 'X'),
+    ($r2 == 1 ? ($r1 == 1 ? 'O' : 'E') : 'X'),
     $type,
     $url;
 
