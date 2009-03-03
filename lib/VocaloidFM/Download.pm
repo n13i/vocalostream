@@ -156,10 +156,10 @@ sub check_status
 
     if($tags_ok == 0)
     {
-        foreach(@{$tags})
-        {
-            printf " %s %s\n", ($_->{lock} == 1 ? '*' : ' '), $_->{content};
-        }
+        #foreach(@{$tags})
+        #{
+        #    printf " %s %s\n", ($_->{lock} == 1 ? '*' : ' '), $_->{content};
+        #}
         return {
             code => -5,
             text => 'tagcheck failed',

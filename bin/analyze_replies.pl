@@ -44,7 +44,7 @@ $sth->finish; undef $sth;
 my @files = ();
 foreach my $s (@updates)
 {
-    printf "%s: %s\n", $s->{name}, $s->{text};
+    logger "%s: %s\n", $s->{name}, $s->{text};
 
     # 動画 ID を取り出す
     my @urls = $s->{text} =~ m{((?:sm|nm)\d+)}sg;
@@ -57,7 +57,7 @@ foreach my $s (@updates)
         foreach(grep(!$tmp{$_}++, @urls))
         {
             my $url = 'http://www.nicovideo.jp/watch/' . $_;
-            printf "  got video: %s\n", $url;
+            logger "  got video: %s\n", $url;
             push(@{$s->{urls}}, $url);
         }    
     }

@@ -5,10 +5,11 @@ use warnings;
 use utf8;
 
 use base qw(Exporter);
-our @EXPORT = qw(load_config get_config);
+our @EXPORT = qw(load_config get_config logger);
 
 use FindBin qw($Bin);
 use YAML;
+use DateTime;
 
 my $instance;
 
@@ -38,6 +39,24 @@ sub load_config
     $instance->{config} = $conf;
 
     return $conf;
+}
+
+# static
+sub logger
+{
+    my $format = shift;
+    my @args = @_;
+
+    my $conf = get_config;
+    open FH, '>>:encoding(utf8)', $conf->{logfile};
+    printf FH "[%s] $format",
+        DateTime->now(time_zone => $conf->{timezone})->strftime('%y/%m/%d %H:%M:%S'),
+        @args;
+    if($format !~ /\n$/)
+    {
+        print FH "\n";
+    }
+    close FH;
 }
 
 1;

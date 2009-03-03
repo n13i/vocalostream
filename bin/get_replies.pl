@@ -66,12 +66,12 @@ foreach my $r (sort { $a->{id} <=> $b->{id} } @replies)
     {
         my $expanded = &expand_tinyurl($_);                                             if(defined($expanded))
         {
-            printf "  untinyurlize: %s\n", $expanded;
+            logger "  untinyurlize: %s\n", $expanded;
             $r->{text} =~ s#$_#$expanded#g;
         }
     }
 
-    printf "[%d] %s: %s\n",
+    logger "[%d] %s: %s\n",
         $r->{id}, $r->{user}->{screen_name}, $r->{text};
 
     $sth->execute(

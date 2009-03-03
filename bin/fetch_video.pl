@@ -59,7 +59,7 @@ my $n = 0;
 foreach my $f (@files)
 {
     $n++;
-    printf "%s\n[%d/%d] (take %d) %d: %s\n",
+    logger "%s\n[%d/%d] (take %d) %d: %s\n",
         '-' x 78, $n, ($#files+1), $f->{try}+1, $f->{id}, $f->{url};
 
     if($f->{url} =~ m{^http://www\.nicovideo\.jp/watch/(\w{2}\d+)$})
@@ -76,7 +76,7 @@ foreach my $f (@files)
             }
         }
 
-        printf "updating db ...\n";
+        logger "updating db ...\n";
         $dbh->begin_work;
         if($result == 1)
         {
@@ -99,7 +99,7 @@ foreach my $f (@files)
             );
         }
         $dbh->commit;
-        printf "[%d/%d] done.\n", $n, ($#files+1);
+        logger "[%d/%d] done.\n", $n, ($#files+1);
     }
 }
 $sth->finish; undef $sth;
@@ -117,36 +117,43 @@ sub fetch_nicovideo
 {
     my $video_id = shift || return undef;
 
-    printf "target: %s\n", $video_id;
+    logger "target: %s\n", $video_id;
 
     my $status = $dl->check_status($video_id);
     if(!defined($status))
     {
-        printf "ERROR: status check failed\n";
+        logger "ERROR: status check failed\n";
         return undef;
     }
 
-    printf "%s\n", $status->{thumbinfo}->{thumb}->{title};
+    logger "%s\n", $status->{thumbinfo}->{thumb}->{title};
 
     if($status->{code} < 0)
     {
-        printf "ERROR: %s is rejected by status check: %s\n",
+        logger "ERROR: %s is rejected by status check: %s\n",
             $video_id, $status->{text}; 
+        if($status->{code} == -5)
+        {
+            foreach(@{$status->{tags}})
+            {
+                logger "%s %s\n", ($_->{lock} == 1 ? '*' : ' '), $_->{content};
+            }
+        }
         return {
             result => $status,
         };
     }
 
-    printf "%s is accepted by status check\n", $video_id; 
+    logger "%s is accepted by status check\n", $video_id; 
 
     my $x = $status->{thumbinfo};
 
     my $file_source = sprintf "%s/%s", $conf->{dirs}->{sources}, $video_id;
-    printf "source: %s\n", $file_source;
+    logger "source: %s\n", $file_source;
     my $downloaded = 0;
     if(!-f $file_source)
     {
-        printf "downloading ...\n";
+        logger "downloading ...\n";
         my $start_time = time;
         eval {
             #$nv->download($video_id, $file_source . '.tmp');
@@ -154,18 +161,18 @@ sub fetch_nicovideo
         };
         if($@)
         {
-            printf "ERROR: %s\n", $@;
+            logger "ERROR: %s\n", $@;
             return {
                 result => { code => -6, text => $@ },
             };
         }
-        printf "done, takes %d seconds\n", (time - $start_time);
+        logger "done, takes %d seconds\n", (time - $start_time);
         rename $file_source . '.tmp', $file_source;
         $downloaded = 1;
     }
     if(!-f $file_source || -z $file_source)
     {
-        printf "ERROR: missing source file\n";
+        logger "ERROR: missing source file\n";
         return {
             result => { code => -6, text => 'missing source file' },
         };
@@ -183,12 +190,12 @@ sub fetch_nicovideo
     if(defined($username))
     {
         $artist = $username;
-        printf "got username: %s\n", $username;
+        logger "got username: %s\n", $username;
 
         $pname = $dl->get_pname($username, $status->{tags});
         if(defined($pname))
         {
-            printf "got pname: %s\n", $pname;
+            logger "got pname: %s\n", $pname;
             $artist .= ' (' . $pname . ')';
         }
     }
@@ -196,9 +203,9 @@ sub fetch_nicovideo
     my $cmd_file = $conf->{cmds}->{file};
     my $mimetype = `$cmd_file -b -i $file_source`;
     chomp $mimetype;
-    printf "mime type: %s\n", $mimetype;
+    logger "mime type: %s\n", $mimetype;
 
-    printf "converting %s ...\n", $title;
+    logger "converting %s ...\n", $title;
     my ($out, $err);
     if($mimetype =~ /flash/)
     {
@@ -262,21 +269,21 @@ sub fetch_nicovideo
              '-o', $file_song, '-'],
             \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
     }
-    print $err;
+    logger $err;
     if(!-f $file_song)
     {
-        printf "ERROR: failed to convert\n";
+        logger "ERROR: failed to convert\n";
         return {
             result => { code => -7, text => 'failed to convert' },
         };
     }
 
-    printf "running VorbisGain ...\n";
+    logger "running VorbisGain ...\n";
     # set VorbisGain tags
     run [$conf->{cmds}->{vorbisgain}, '-q', $file_song],
         \$out, \$err, timeout($conf->{converter}->{vorbisgain_timeout}) or die "$?";
 
-    printf "done.\n";
+    logger "done.\n";
 
     return {
         result => { code => 1, text => 'success' },

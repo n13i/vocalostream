@@ -56,8 +56,8 @@ my $add_interval = $conf->{playlist}->{add_interval};
 
 my $next_addtime = 0; #time + $add_interval;
 
-&log(sprintf("==> starting mpdwatch %s\n\n",
-    '$Id$'));
+logger "==> starting mpdwatch %s\n\n",
+    '$Id$';
 
 while($mainloop)
 {
@@ -71,8 +71,8 @@ while($mainloop)
         $request_info = &add_playlist({request_mode => 1});
         if(defined($request_info))
         {
-            &log(sprintf "request from @%s: queueing done.\n",
-                $request_info->{user_screen_name});
+            logger "request from @%s: queueing done.\n",
+                $request_info->{user_screen_name};
         }
     }
 
@@ -85,7 +85,7 @@ while($mainloop)
 
     if(!defined($mpd->song))
     {
-        &log("Not playing, trying to restart\n");
+        logger "Not playing, trying to restart\n";
         &mpd_set_outputs(0);
         sleep 1;
         &init_mpd;
@@ -160,14 +160,14 @@ while($mainloop)
             $post = sprintf "\x{266b} %s", $post;
         }
 
-        &log(sprintf "%s\n%s\n", '-' x 78, $post);
+        logger "%s\n%s\n", '-' x 78, $post;
         if($conf->{twitter}->{post_enable} == 1)
         {
             $twit->update(encode('utf8', $post));
         }
 
-        &log(sprintf "* pos=%d, id=%d, file=%s\n",
-            $song->pos, $song->id, $song->file);
+        logger "* pos=%d, id=%d, file=%s\n",
+            $song->pos, $song->id, $song->file;
     }
 }
 
@@ -223,7 +223,7 @@ sub add_playlist
 
     # ステータスチェック
     my $dl = VocaloidFM::Download->new;
-    &log("* checking video statuses ...\n");
+    logger "* checking video statuses ...\n";
     foreach my $p (@progs)
     {
         my $last_checked = $p->{last_checked} || 0;
@@ -236,7 +236,7 @@ sub add_playlist
             }
             else
             {
-                &log(sprintf "! can't get video id: %s\n", $p->{url});
+                logger "! can't get video id: %s\n", $p->{url};
                 $p->{state} = -99;
                 next;
             }
@@ -244,11 +244,11 @@ sub add_playlist
             my $s = $dl->check_status($video_id);
             if($s->{code} < 0)
             {
-                &log(sprintf "! %s: status error: %s\n", $video_id, $s->{text});
+                logger "! %s: status error: %s\n", $video_id, $s->{text};
             }
             else
             {
-                &log(sprintf "* %s: status OK\n", $video_id);
+                logger "* %s: status OK\n", $video_id;
             }
 
             # TODO 投稿者名も再取得？
@@ -276,7 +276,7 @@ sub add_playlist
         }
     }
 
-    &log("* updating MPD database ...\n");
+    logger "* updating MPD database ...\n";
     my $update_time = 0;
     $mpd->updatedb;
     while(defined($mpd->status->updating_db))
@@ -287,16 +287,16 @@ sub add_playlist
 
     my $reqinfo = undef;
 
-    &log("* add to MPD playlist ...\n");
+    logger "* add to MPD playlist ...\n";
     foreach my $p (@progs)
     {
         #print Dump($p);
-        &log(sprintf "* [%d] %s %s\n", $p->{id}, $p->{filename}, $p->{title});
+        logger "* [%d] %s %s\n", $p->{id}, $p->{filename}, $p->{title};
 
         if($p->{state} < 0)
         {
-            &log(sprintf "* %s is rejected by status check, skip this.\n",
-                $p->{filename});
+            logger "* %s is rejected by status check, skip this.\n",
+                $p->{filename};
 
             $dbh->begin_work;
             $dbh->do(
@@ -318,8 +318,8 @@ sub add_playlist
                 # 追加しようとしている曲が現在再生中ならスルー
                 if($p->{filename} eq $mpd->song->file)
                 {
-                    &log(sprintf "* %s is now playing, skip this.\n",
-                        $p->{filename});
+                    logger "* %s is now playing, skip this.\n",
+                        $p->{filename};
 
                     # FIXME
                     $dbh->begin_work;
@@ -339,8 +339,8 @@ sub add_playlist
             {
                 if($song->file eq $p->{filename})
                 {
-                    &log(sprintf "* %s exists in playlist (pos=%d), so delete it.\n",
-                        $p->{filename}, $song->pos);
+                    logger "* %s exists in playlist (pos=%d), so delete it.\n",
+                        $p->{filename}, $song->pos;
                     $mpd->playlist->delete($song->pos);
                 }
             }
@@ -366,14 +366,14 @@ sub add_playlist
                 $mpd->playlist->add($p->{filename});
                 if($pls_length > 0)
                 {
-                    &log(sprintf "* move from %d to %d\n",
-                        $pls_length, $current_pos+1);
+                    logger "* move from %d to %d\n",
+                        $pls_length, $current_pos+1;
                     $mpd->playlist->move($pls_length, $current_pos+1);
                 }
             };
             if($@)
             {
-                &log(sprintf "ERROR while adding: %s\n", $@);
+                logger "ERROR while adding: %s\n", $@;
                 next;
             }
 
@@ -399,7 +399,7 @@ sub add_playlist
             };
             if($@)
             {
-                &log(sprintf "ERROR while adding: %s\n", $@);
+                logger "ERROR while adding: %s\n", $@;
                 next;
             }
             $dbh->begin_work;
