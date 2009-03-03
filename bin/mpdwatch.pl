@@ -160,7 +160,7 @@ while($mainloop)
             $post = sprintf "\x{266b} %s", $post;
         }
 
-        logger "%s\n%s\n", '-' x 78, $post;
+        logger "%s\n", $post;
         if($conf->{twitter}->{post_enable} == 1)
         {
             $twit->update(encode('utf8', $post));
