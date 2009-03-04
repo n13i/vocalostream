@@ -16,6 +16,8 @@ use VocaloidFM;
 
 binmode STDOUT, ':encoding(utf8)';
 
+my $logdomain = 'ReplyFetcher';
+
 my $conf = load_config;
 
 my $dbh = DBI->connect(
@@ -66,12 +68,12 @@ foreach my $r (sort { $a->{id} <=> $b->{id} } @replies)
     {
         my $expanded = &expand_tinyurl($_);                                             if(defined($expanded))
         {
-            logger "  untinyurlize: %s\n", $expanded;
+            logger $logdomain, "  untinyurlize: %s\n", $expanded;
             $r->{text} =~ s#$_#$expanded#g;
         }
     }
 
-    logger "[%d] %s: %s\n",
+    logger $logdomain, "%d %s: %s\n",
         $r->{id}, $r->{user}->{screen_name}, $r->{text};
 
     $sth->execute(

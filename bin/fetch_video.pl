@@ -24,6 +24,8 @@ use VocaloidFM::Download;
 binmode STDOUT, ':encoding(utf8)';
 select(STDOUT); $| = 1;
 
+my $logdomain = 'VideoFetcher';
+
 my $conf = load_config;
 
 my $dbh = DBI->connect(
@@ -59,8 +61,8 @@ my $n = 0;
 foreach my $f (@files)
 {
     $n++;
-    logger "%s\n[%d/%d] (take %d) %d: %s\n",
-        '-' x 78, $n, ($#files+1), $f->{try}+1, $f->{id}, $f->{url};
+    logger $logdomain, "%s\n[%d/%d] (take %d) %d: %s\n",
+        '-' x 40, $n, ($#files+1), $f->{try}+1, $f->{id}, $f->{url};
 
     if($f->{url} =~ m{^http://www\.nicovideo\.jp/watch/(\w{2}\d+)$})
     {
@@ -76,7 +78,7 @@ foreach my $f (@files)
             }
         }
 
-        logger "updating db ...\n";
+        logger $logdomain, "updating db ...\n";
         $dbh->begin_work;
         if($result == 1)
         {
@@ -99,7 +101,7 @@ foreach my $f (@files)
             );
         }
         $dbh->commit;
-        logger "[%d/%d] done.\n", $n, ($#files+1);
+        logger $logdomain, "[%d/%d] done.\n", $n, ($#files+1);
     }
 }
 $sth->finish; undef $sth;
@@ -117,26 +119,27 @@ sub fetch_nicovideo
 {
     my $video_id = shift || return undef;
 
-    logger "target: %s\n", $video_id;
+    logger $logdomain, "target: %s\n", $video_id;
 
     my $status = $dl->check_status($video_id);
     if(!defined($status))
     {
-        logger "ERROR: status check failed\n";
+        logger $logdomain, "ERROR: status check failed\n";
         return undef;
     }
 
-    logger "%s\n", $status->{thumbinfo}->{thumb}->{title};
+    logger $logdomain, "%s\n", $status->{thumbinfo}->{thumb}->{title};
 
     if($status->{code} < 0)
     {
-        logger "ERROR: %s is rejected by status check: %s\n",
+        logger $logdomain, "ERROR: %s is rejected by status check: %s\n",
             $video_id, $status->{text}; 
         if($status->{code} == -5)
         {
             foreach(@{$status->{tags}})
             {
-                logger "%s %s\n", ($_->{lock} == 1 ? '*' : ' '), $_->{content};
+                logger $logdomain, "%s %s\n",
+                    ($_->{lock} == 1 ? '*' : ' '), $_->{content};
             }
         }
         return {
@@ -144,16 +147,16 @@ sub fetch_nicovideo
         };
     }
 
-    logger "%s is accepted by status check\n", $video_id; 
+    logger $logdomain, "%s is accepted by status check\n", $video_id; 
 
     my $x = $status->{thumbinfo};
 
     my $file_source = sprintf "%s/%s", $conf->{dirs}->{sources}, $video_id;
-    logger "source: %s\n", $file_source;
+    logger $logdomain, "source: %s\n", $file_source;
     my $downloaded = 0;
     if(!-f $file_source)
     {
-        logger "downloading ...\n";
+        logger $logdomain, "downloading ...\n";
         my $start_time = time;
         eval {
             #$nv->download($video_id, $file_source . '.tmp');
@@ -161,18 +164,18 @@ sub fetch_nicovideo
         };
         if($@)
         {
-            logger "ERROR: %s\n", $@;
+            logger $logdomain, "ERROR: %s\n", $@;
             return {
                 result => { code => -6, text => $@ },
             };
         }
-        logger "done, takes %d seconds\n", (time - $start_time);
+        logger $logdomain, "done, takes %d seconds\n", (time - $start_time);
         rename $file_source . '.tmp', $file_source;
         $downloaded = 1;
     }
     if(!-f $file_source || -z $file_source)
     {
-        logger "ERROR: missing source file\n";
+        logger $logdomain, "ERROR: missing source file\n";
         return {
             result => { code => -6, text => 'missing source file' },
         };
@@ -190,12 +193,12 @@ sub fetch_nicovideo
     if(defined($username))
     {
         $artist = $username;
-        logger "got username: %s\n", $username;
+        logger $logdomain, "got username: %s\n", $username;
 
         $pname = $dl->get_pname($username, $status->{tags});
         if(defined($pname))
         {
-            logger "got pname: %s\n", $pname;
+            logger $logdomain, "got pname: %s\n", $pname;
             $artist .= ' (' . $pname . ')';
         }
     }
@@ -203,9 +206,9 @@ sub fetch_nicovideo
     my $cmd_file = $conf->{cmds}->{file};
     my $mimetype = `$cmd_file -b -i $file_source`;
     chomp $mimetype;
-    logger "mime type: %s\n", $mimetype;
+    logger $logdomain, "mime type: %s\n", $mimetype;
 
-    logger "converting %s ...\n", $title;
+    logger $logdomain, "converting %s ...\n", $title;
     my ($out, $err);
     if($mimetype =~ /flash/)
     {
@@ -269,21 +272,21 @@ sub fetch_nicovideo
              '-o', $file_song, '-'],
             \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
     }
-    logger $err;
+    logger $logdomain, $err;
     if(!-f $file_song)
     {
-        logger "ERROR: failed to convert\n";
+        logger $logdomain, "ERROR: failed to convert\n";
         return {
             result => { code => -7, text => 'failed to convert' },
         };
     }
 
-    logger "running VorbisGain ...\n";
+    logger $logdomain, "running VorbisGain ...\n";
     # set VorbisGain tags
     run [$conf->{cmds}->{vorbisgain}, '-q', $file_song],
         \$out, \$err, timeout($conf->{converter}->{vorbisgain_timeout}) or die "$?";
 
-    logger "done.\n";
+    logger $logdomain, "done.\n";
 
     return {
         result => { code => 1, text => 'success' },

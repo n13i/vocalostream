@@ -44,14 +44,14 @@ sub load_config
 # static
 sub logger
 {
+    my $domain = shift;
     my $format = shift;
     my @args = @_;
 
     my $conf = get_config;
     open FH, '>>:encoding(utf8)', $conf->{logfile};
-    printf FH "[%s] $format",
-        DateTime->now(time_zone => $conf->{timezone})->strftime('%y/%m/%d %H:%M:%S'),
-        @args;
+    printf FH "[%s] %s: $format",
+        DateTime->now(time_zone => $conf->{timezone})->strftime('%y/%m/%d %H:%M:%S'), $domain, @args;
     if($format !~ /\n$/)
     {
         print FH "\n";

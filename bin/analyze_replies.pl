@@ -14,12 +14,15 @@ use VocaloidFM;
 
 binmode STDOUT, ':encoding(utf8)';
 
+my $logdomain = 'ReplyAnalyzer';
+
 my $conf = load_config;
 
 my $dbh = DBI->connect(
     'dbi:SQLite:dbname=' . $conf->{db},
     '', '', {unicode => 1}
 );
+
 
 $dbh->begin_work;
 
@@ -44,7 +47,7 @@ $sth->finish; undef $sth;
 my @files = ();
 foreach my $s (@updates)
 {
-    logger "%s: %s\n", $s->{name}, $s->{text};
+    logger $logdomain, "%s: %s\n", $s->{name}, $s->{text};
 
     # 動画 ID を取り出す
     my @urls = $s->{text} =~ m{((?:sm|nm)\d+)}sg;
@@ -57,7 +60,7 @@ foreach my $s (@updates)
         foreach(grep(!$tmp{$_}++, @urls))
         {
             my $url = 'http://www.nicovideo.jp/watch/' . $_;
-            logger "  got video: %s\n", $url;
+            logger $logdomain, "  got video: %s\n", $url;
             push(@{$s->{urls}}, $url);
         }    
     }
