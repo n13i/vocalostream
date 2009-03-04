@@ -268,7 +268,7 @@ sub add_playlist
                 "last_checked = strftime('%s', 'now') " .
                 'WHERE id = ?',
                 undef,
-                $status->{thumbinfo}->{thumb}->{title},
+                $s->{thumbinfo}->{thumb}->{title},
                 $username, $pname, $s->{code}, $p->{file_id},
             );
             $dbh->commit;
