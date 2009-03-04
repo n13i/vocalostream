@@ -213,7 +213,7 @@ sub get_thumbinfo
     my $video_id = shift || undef;
 
     my $res = $self->{nicovideo}->user_agent->get(
-        'http://www.nicovideo.jp/api/getthumbinfo/' . $video_id
+        'http://ext.nicovideo.jp/api/getthumbinfo/' . $video_id
     );
     if($res->is_error)
     {
