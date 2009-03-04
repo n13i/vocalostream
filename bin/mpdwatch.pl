@@ -261,12 +261,15 @@ sub add_playlist
             $dbh->begin_work;
             $dbh->do(
                 'UPDATE files SET ' .
+                'title = ?, ' .
                 'username = ?, ' .
                 'pname = ?, ' .
                 'state = ?, ' .
                 "last_checked = strftime('%s', 'now') " .
                 'WHERE id = ?',
-                undef, $username, $pname, $s->{code}, $p->{file_id},
+                undef,
+                $status->{thumbinfo}->{thumb}->{title},
+                $username, $pname, $s->{code}, $p->{file_id},
             );
             $dbh->commit;
 
