@@ -44,8 +44,8 @@ sub load_config
 # static
 sub logger
 {
-    my $domain = shift;
-    my $format = shift;
+    my $domain = shift || 'UNKNOWN';
+    my $format = shift || '';
     my @args = @_;
 
     my $conf = get_config;
