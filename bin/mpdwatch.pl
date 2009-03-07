@@ -277,6 +277,9 @@ sub add_playlist
             );
             $dbh->commit;
 
+            my $title = sprintf "%s (from http://www.nicovideo.jp/watch/%s)",
+                $s->{thumbinfo}->{thumb}->{title}, $video_id;
+
             my $artist = $username;
             if(defined($pname))
             {
@@ -286,8 +289,7 @@ sub add_playlist
             # タグの書き換え
             VocaloidFM::Tagger::set_comments(
                 $conf->{dirs}->{songs} . '/' . $p->{filename},
-                { title => $s->{thumbinfo}->{thumb}->{title},
-                  artist => $artist }
+                { title => $title, artist => $artist }
             );
 
             $p->{state} = $s->{code};
