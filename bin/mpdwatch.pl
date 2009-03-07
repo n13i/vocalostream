@@ -280,7 +280,7 @@ sub add_playlist
             my $artist = $username;
             if(defined($pname))
             {
-                $artist .= '(' . $pname . ')';
+                $artist .= ' (' . $pname . ')';
             }
 
             # タグの書き換え
