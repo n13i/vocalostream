@@ -20,6 +20,7 @@ use HTML::Entities;
 
 use VocaloidFM;
 use VocaloidFM::Download;
+use VocaloidFM::Tagger;
 
 binmode STDOUT, ':encoding(utf8)';
 select(STDOUT); $| = 1;
@@ -209,14 +210,14 @@ sub fetch_nicovideo
     logger $logdomain, "mime type: %s\n", $mimetype;
 
     logger $logdomain, "converting %s ...\n", $title;
-    my ($out, $err);
+    my ($in, $out, $err);
     if($mimetype =~ /flash/)
     {
         # 展開してから ffmpeg へ
         # 途中までしか変換されないことがあったので
         # パイプではなくファイルにして渡す
         my $tmpswf = $file_source . '.tmp.swf';
-        run ["$Bin/cws2fws.pl"], '<', $file_source, '>', $tmpswf;
+        run ["$Bin/cws2fws.pl"], '<', $file_source, '>', $tmpswf, '2>', \$err;
         run [$conf->{cmds}->{ffmpeg},
              '-i', $tmpswf,
              '-vn',
@@ -226,11 +227,12 @@ sub fetch_nicovideo
              '-'], '|',
             [$conf->{cmds}->{oggenc},
              '-Q',
-             '-t', $title,
-             '-a', $artist,
+#             '-t', $title,
+#             '-a', $artist,
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
-            \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
+            '>', \$out, '2>', \$err,
+            timeout($conf->{converter}->{timeout}) or die "$?";
         eval { unlink($tmpswf); };
     }
     elsif($mimetype =~ /mp4/)
@@ -244,15 +246,17 @@ sub fetch_nicovideo
              '-vn',
              '-acodec', 'copy',
              $tmpaac],
-            \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
+            '>', \$out, '2>', \$err,
+            timeout($conf->{converter}->{timeout}) or die "$?";
         run [$conf->{cmds}->{faad}, '-q', '-o', '-', $tmpaac], '|',
             [$conf->{cmds}->{oggenc},
              '-Q',
-             '-t', $title,
-             '-a', $artist,
+#             '-t', $title,
+#             '-a', $artist,
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
-            \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
+            '>', \$out, '2>', \$err,
+            timeout($conf->{converter}->{timeout}) or die "$?";
         eval { unlink($tmpaac); };
     }
     else
@@ -266,11 +270,12 @@ sub fetch_nicovideo
              '-'], '|',
             [$conf->{cmds}->{oggenc},
              '-Q',
-             '-t', $title,
-             '-a', $artist,
+#             '-t', $title,
+#             '-a', $artist,
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
-            \$out, \$err, timeout($conf->{converter}->{timeout}) or die "$?";
+            '>', \$out, '2>', \$err,
+            timeout($conf->{converter}->{timeout}) or die "$?";
     }
     logger $logdomain, $err;
     if(!-f $file_song)
@@ -281,10 +286,17 @@ sub fetch_nicovideo
         };
     }
 
+    # タギング
+    VocaloidFM::Tagger::set_comments(
+        $file_song,
+        { title => $title, artist => $artist }
+    );
+
     logger $logdomain, "running VorbisGain ...\n";
     # set VorbisGain tags
     run [$conf->{cmds}->{vorbisgain}, '-q', $file_song],
-        \$out, \$err, timeout($conf->{converter}->{vorbisgain_timeout}) or die "$?";
+        '>', \$out, '2>', \$err,
+        timeout($conf->{converter}->{vorbisgain_timeout}) or die "$?";
 
     logger $logdomain, "done.\n";
 

@@ -15,6 +15,7 @@ use DateTime;
 
 use VocaloidFM;
 use VocaloidFM::Download;
+use VocaloidFM::Tagger;
 
 binmode STDOUT, ':encoding(utf8)';
 
@@ -255,8 +256,7 @@ sub add_playlist
                 logger $logdomain, "* %s: status OK\n", $video_id;
             }
 
-            # TODO 投稿者名も再取得？
-            # そうするとタグの書き換えも必要になる
+            # 投稿者名も再取得
             my $username = $dl->get_username($video_id);
     
             # タグを調べて P 名を特定
@@ -276,6 +276,19 @@ sub add_playlist
                 $username, $pname, $s->{code}, $p->{file_id},
             );
             $dbh->commit;
+
+            my $artist = $username;
+            if(defined($pname))
+            {
+                $artist .= '(' . $pname . ')';
+            }
+
+            # タグの書き換え
+            VocaloidFM::Tagger::set_comments(
+                $conf->{dirs}->{songs} . '/' . $p->{filename},
+                { title => $s->{thumbinfo}->{thumb}->{title},
+                  artist => $artist }
+            );
 
             $p->{state} = $s->{code};
 
