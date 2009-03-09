@@ -59,7 +59,7 @@ my $add_interval = $conf->{playlist}->{add_interval};
 
 my $next_addtime = 0; #time + $add_interval;
 
-logger $logdomain, "==> starting mpdwatch %s\n\n",
+logger $logdomain, "%s\n",
     '$Id$';
 
 while($mainloop)
