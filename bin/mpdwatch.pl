@@ -255,7 +255,7 @@ sub add_playlist
             {
                 logger $logdomain, "* %s: status OK\n", $video_id;
             }
-            sleep 3
+            sleep 3;
 
             # 投稿者名も再取得
             my $username = $dl->get_username($video_id);
@@ -295,7 +295,7 @@ sub add_playlist
             VocaloidFM::Tagger::set_comments(
                 $conf->{dirs}->{songs} . '/' . $p->{filename},
                 { title => $title, artist => $artist }
-            );
+            )
         }
     }
 
