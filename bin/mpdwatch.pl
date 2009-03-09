@@ -255,6 +255,7 @@ sub add_playlist
             {
                 logger $logdomain, "* %s: status OK\n", $video_id;
             }
+            sleep 3
 
             # 投稿者名も再取得
             my $username = $dl->get_username($video_id);
@@ -277,6 +278,10 @@ sub add_playlist
             );
             $dbh->commit;
 
+            $p->{state} = $s->{code};
+
+            next if($s->{code} < 0);
+
             my $title = sprintf "%s (from http://www.nicovideo.jp/watch/%s)",
                 $s->{thumbinfo}->{thumb}->{title}, $video_id;
 
@@ -291,10 +296,6 @@ sub add_playlist
                 $conf->{dirs}->{songs} . '/' . $p->{filename},
                 { title => $title, artist => $artist }
             );
-
-            $p->{state} = $s->{code};
-
-            sleep 3
         }
     }
 
