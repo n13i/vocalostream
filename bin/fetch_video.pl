@@ -248,7 +248,7 @@ sub fetch_nicovideo
              $tmpaac],
             '>', \$out, '2>', \$err,
             timeout($conf->{converter}->{timeout}) or die "$?";
-        run [$conf->{cmds}->{faad}, '-q', '-o', '-', $tmpaac], '|',
+        run [$conf->{cmds}->{faad}, '-q', '-d', '-o', '-', $tmpaac], '|',
             [$conf->{cmds}->{oggenc},
              '-Q',
 #             '-t', $title,
