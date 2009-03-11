@@ -233,6 +233,7 @@ sub fetch_nicovideo
              '-o', $file_song, '-'],
             '>', \$out, '2>', \$err,
             timeout($conf->{converter}->{timeout}) or die "$?";
+        # FIXME die しないでなんとかする
         eval { unlink($tmpswf); };
     }
     elsif($mimetype =~ /mp4/)
@@ -277,7 +278,7 @@ sub fetch_nicovideo
             '>', \$out, '2>', \$err,
             timeout($conf->{converter}->{timeout}) or die "$?";
     }
-    logger $logdomain, $err;
+    #logger $logdomain, $err;
     if(!-f $file_song)
     {
         logger $logdomain, "ERROR: failed to convert\n";
