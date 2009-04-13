@@ -218,22 +218,28 @@ sub fetch_nicovideo
         # 途中までしか変換されないことがあったので
         # パイプではなくファイルにして渡す
         my $tmpswf = $file_source . '.tmp.swf';
-        run ["$Bin/cws2fws.pl"], '<', $file_source, '>', $tmpswf, '2>', \$err;
-        run [$conf->{cmds}->{ffmpeg},
-             '-i', $tmpswf,
-             '-vn',
-             '-ac', 2,
-             '-ar', 44100,
-             '-f', 'wav',
-             '-'], '|',
-            [$conf->{cmds}->{oggenc},
-             '-Q',
-#             '-t', $title,
-#             '-a', $artist,
-             '-q', $conf->{converter}->{quality},
-             '-o', $file_song, '-'],
-            '>', \$out, '2>', \$err,
-            timeout($conf->{converter}->{timeout}) or $timeout++;
+        eval {
+            run ["$Bin/cws2fws.pl"], '<', $file_source, '>', $tmpswf, '2>', \$err;
+            run [$conf->{cmds}->{ffmpeg},
+                 '-i', $tmpswf,
+                 '-vn',
+                 '-ac', 2,
+                 '-ar', 44100,
+                 '-f', 'wav',
+                 '-'], '|',
+                [$conf->{cmds}->{oggenc},
+                 '-Q',
+    #             '-t', $title,
+    #             '-a', $artist,
+                 '-q', $conf->{converter}->{quality},
+                 '-o', $file_song, '-'],
+                '>', \$out, '2>', \$err,
+                timeout($conf->{converter}->{timeout});
+        };
+        if($@)
+        {
+            $timeout++;
+        }
         # FIXME die しないでなんとかする
         eval { unlink($tmpswf); };
     }
@@ -242,42 +248,54 @@ sub fetch_nicovideo
         # HE-AAC のデコードミスを防ぐため
         # 一度抽出して faad でデコード
         my $tmpaac = $file_source . '.tmp.aac';
-        run [$conf->{cmds}->{ffmpeg},
-             '-y',
-             '-i', $file_source,
-             '-vn',
-             '-acodec', 'copy',
-             $tmpaac],
-            '>', \$out, '2>', \$err,
-            timeout($conf->{converter}->{timeout}) or $timeout++;
-        run [$conf->{cmds}->{faad}, '-q', '-d', '-o', '-', $tmpaac], '|',
-            [$conf->{cmds}->{oggenc},
-             '-Q',
-#             '-t', $title,
-#             '-a', $artist,
-             '-q', $conf->{converter}->{quality},
-             '-o', $file_song, '-'],
-            '>', \$out, '2>', \$err,
-            timeout($conf->{converter}->{timeout}) or $timeout++;
+        eval {
+            run [$conf->{cmds}->{ffmpeg},
+                 '-y',
+                 '-i', $file_source,
+                 '-vn',
+                 '-acodec', 'copy',
+                 $tmpaac],
+                '>', \$out, '2>', \$err,
+                timeout($conf->{converter}->{timeout});
+            run [$conf->{cmds}->{faad}, '-q', '-d', '-o', '-', $tmpaac], '|',
+                [$conf->{cmds}->{oggenc},
+                 '-Q',
+    #             '-t', $title,
+    #             '-a', $artist,
+                 '-q', $conf->{converter}->{quality},
+                 '-o', $file_song, '-'],
+                '>', \$out, '2>', \$err,
+                timeout($conf->{converter}->{timeout});
+        };
+        if($@)
+        {
+            $timeout++;
+        }
         eval { unlink($tmpaac); };
     }
     else
     {
-        run [$conf->{cmds}->{ffmpeg},
-             '-i', $file_source,
-             '-vn',
-             '-ac', 2,
-             '-ar', 44100,
-             '-f', 'wav',
-             '-'], '|',
-            [$conf->{cmds}->{oggenc},
-             '-Q',
-#             '-t', $title,
-#             '-a', $artist,
-             '-q', $conf->{converter}->{quality},
-             '-o', $file_song, '-'],
-            '>', \$out, '2>', \$err,
-            timeout($conf->{converter}->{timeout}) or $timeout++;
+        eval {
+            run [$conf->{cmds}->{ffmpeg},
+                 '-i', $file_source,
+                 '-vn',
+                 '-ac', 2,
+                 '-ar', 44100,
+                 '-f', 'wav',
+                 '-'], '|',
+                [$conf->{cmds}->{oggenc},
+                 '-Q',
+    #             '-t', $title,
+    #             '-a', $artist,
+                 '-q', $conf->{converter}->{quality},
+                 '-o', $file_song, '-'],
+                '>', \$out, '2>', \$err,
+                timeout($conf->{converter}->{timeout});
+        };
+        if($@)
+        {
+            $timeout++;
+        }
     }
     logger $logdomain, $err;
     if(!-f $file_song || $timeout > 0)
