@@ -211,6 +211,7 @@ sub fetch_nicovideo
 
     logger $logdomain, "converting %s ...\n", $title;
     my ($in, $out, $err);
+    my $timeout = 0;
     if($mimetype =~ /flash/)
     {
         # 展開してから ffmpeg へ
@@ -232,7 +233,7 @@ sub fetch_nicovideo
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
             '>', \$out, '2>', \$err,
-            timeout($conf->{converter}->{timeout}) or die "$?";
+            timeout($conf->{converter}->{timeout}) or $timeout++;
         # FIXME die しないでなんとかする
         eval { unlink($tmpswf); };
     }
@@ -248,7 +249,7 @@ sub fetch_nicovideo
              '-acodec', 'copy',
              $tmpaac],
             '>', \$out, '2>', \$err,
-            timeout($conf->{converter}->{timeout}) or die "$?";
+            timeout($conf->{converter}->{timeout}) or $timeout++;
         run [$conf->{cmds}->{faad}, '-q', '-d', '-o', '-', $tmpaac], '|',
             [$conf->{cmds}->{oggenc},
              '-Q',
@@ -257,7 +258,7 @@ sub fetch_nicovideo
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
             '>', \$out, '2>', \$err,
-            timeout($conf->{converter}->{timeout}) or die "$?";
+            timeout($conf->{converter}->{timeout}) or $timeout++;
         eval { unlink($tmpaac); };
     }
     else
@@ -276,10 +277,10 @@ sub fetch_nicovideo
              '-q', $conf->{converter}->{quality},
              '-o', $file_song, '-'],
             '>', \$out, '2>', \$err,
-            timeout($conf->{converter}->{timeout}) or die "$?";
+            timeout($conf->{converter}->{timeout}) or $timeout++;
     }
     logger $logdomain, $err;
-    if(!-f $file_song)
+    if(!-f $file_song || $timeout > 0)
     {
         logger $logdomain, "ERROR: failed to convert\n";
         return {
