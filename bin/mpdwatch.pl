@@ -86,6 +86,25 @@ while($mainloop)
         $next_addtime = time + $add_interval;
     }
 
+    # プレイリスト入れ替え処理中の場合
+    if(-e $conf->{dirs}->{data} . '/newpls')
+    {
+        # キャッシュ待ち・追加待ち数を確認
+        my $waiting = $dbh->selectrow_hashref(
+            'SELECT ' .
+            ' (SELECT COUNT(*) FROM files WHERE filename IS NULL) AS dl, ' .
+            ' (SELECT COUNT(*) FROM programs WHERE added = 0) AS add',
+            undef);
+    
+        # リクエスト再生待ち状態でなく、キャッシュ待ち・追加待ちがなければ
+        if($waiting->{dl} == 0 && $waiting->{add} == 0)
+        {
+            # シャッフル
+            $mpd->playlist->shuffle;
+            logger $logdomain, "shuffle done.\n";
+        }
+    }
+
     if(!defined($mpd->song))
     {
         logger $logdomain, "Not playing, trying to restart\n";
