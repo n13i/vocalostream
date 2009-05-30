@@ -93,11 +93,11 @@ while($mainloop)
         my $waiting = $dbh->selectrow_hashref(
             'SELECT ' .
             ' (SELECT COUNT(*) FROM files WHERE filename IS NULL) AS dl, ' .
-            ' (SELECT COUNT(*) FROM programs WHERE added = 0) AS add',
+            ' (SELECT COUNT(*) FROM programs WHERE added = 0) AS addpls',
             undef);
     
         # リクエスト再生待ち状態でなく、キャッシュ待ち・追加待ちがなければ
-        if($waiting->{dl} == 0 && $waiting->{add} == 0)
+        if($waiting->{dl} == 0 && $waiting->{addpls} == 0)
         {
             # シャッフル
             $mpd->playlist->shuffle;
