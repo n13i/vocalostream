@@ -101,6 +101,7 @@ while($mainloop)
         {
             # シャッフル
             $mpd->playlist->shuffle;
+            eval { unlink($conf->{dirs}->{data} . '/newpls'); };
             logger $logdomain, "shuffle done.\n";
         }
     }
