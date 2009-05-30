@@ -46,7 +46,7 @@ sub logger
 {
     my $domain = shift || 'UNKNOWN';
     my $format = shift || '';
-    my @args = @_;
+    my @args = @_ || ();
 
     my $conf = get_config;
     open FH, '>>:encoding(utf8)', $conf->{logfile};
