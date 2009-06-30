@@ -49,6 +49,12 @@ foreach my $s (@updates)
 {
     logger $logdomain, "%s: %s\n", $s->{name}, $s->{text};
 
+    if($s->{text} =~ /^RT\s/)
+    {
+        $s->{state} = -1;
+        next;
+    }
+
     # 動画 ID を取り出す
     my @urls = $s->{text} =~ m{((?:sm|nm)\d+)}sg;
     if($#urls >= 0)
