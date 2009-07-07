@@ -49,7 +49,7 @@ foreach my $s (@updates)
 {
     logger $logdomain, "%s: %s\n", $s->{name}, $s->{text};
 
-    if($s->{text} =~ /^RT\s/)
+    if($s->{text} !~ /^\s*\@vocaloid_fm\s/)
     {
         $s->{state} = -1;
         next;
