@@ -24,6 +24,8 @@ sub new
     my $self = {
         nicovideo => undef,
         cookie_jar => undef,
+        whitelist => undef,
+        blacklist => undef,
     };
 
     my $conf = VocaloidFM::get_config;
@@ -38,6 +40,15 @@ sub new
     );
     $self->{nicovideo}->user_agent->cookie_jar($self->{cookie_jar});
     $self->{nicovideo}->user_agent->timeout(30);
+
+    # ホワイト/ブラックリストの読み込み
+    eval {
+        open FH, '<:encoding(utf8)', $conf->{wblist} or die;
+        my $list = YAML::Load(join('', <FH>));
+        $self->{whitelist} = $list->{whitelist};
+        $self->{blacklist} = $list->{blacklist};
+        close FH;
+    };
 
     return bless $self, $class;
 }
@@ -58,7 +69,7 @@ sub check_status
 
     my $conf = VocaloidFM::get_config;
 
-    foreach(@{$conf->{nglist}})
+    foreach(@{$self->{blacklist}})
     {
         if($video_id =~ /^$_$/i)
         {
@@ -146,7 +157,7 @@ sub check_status
     }
 
     # ホワイトリストにあるものは許可
-    foreach(@{$conf->{whitelist}})
+    foreach(@{$self->{whitelist}})
     {
         if($video_id =~ /^$_$/i)
         {
