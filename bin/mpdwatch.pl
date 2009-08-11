@@ -283,6 +283,9 @@ sub add_playlist
             # タグを調べて P 名を特定
             my $pname = $dl->get_pname($username, $s->{tags});
 
+            # 再生数チェック 10万超なら殿堂入りフラグをオン
+            my $vcount = $s->{thumbinfo}->{thumb}->{view_counter};
+
             $dbh->begin_work;
             $dbh->do(
                 'UPDATE files SET ' .
@@ -290,7 +293,8 @@ sub add_playlist
                 'username = ?, ' .
                 'pname = ?, ' .
                 'state = ?, ' .
-                "last_checked = strftime('%s', 'now') " .
+                "last_checked = strftime('%s', 'now'), " .
+                'hof = ' . ($vcount > 100000 ? '1' : '0') . ' ' .
                 'WHERE id = ?',
                 undef,
                 $s->{thumbinfo}->{thumb}->{title},

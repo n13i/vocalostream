@@ -20,6 +20,7 @@ CREATE TABLE files (
     try          INTEGER NOT NULL DEFAULT 0,
     state        INTEGER NOT NULL DEFAULT 0,
     last_checked TIMESTAMP,
+    hof          INTEGER NOT NULL DEFAULT 0,
     UNIQUE(url)
 );
 
