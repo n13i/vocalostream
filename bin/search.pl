@@ -56,7 +56,7 @@ if($res->is_error || $nv->is_logged_out($res))
 my $url = undef;
 if($mode eq 'ranking')
 {
-    $url = sprintf 'http://www.nicovideo.jp/ranking/mylist/%s/music/',
+    $url = sprintf 'http://www.nicovideo.jp/ranking/mylist/%s/vocaloid',
         $query;
 }
 elsif($mode eq 'tag')
