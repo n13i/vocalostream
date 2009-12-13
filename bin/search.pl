@@ -87,16 +87,16 @@ if($res->is_error)
 
 my $scraper = scraper {
     process 'div.thumb_frm', 'videos[]' => scraper {
-        process '.vinfo_view',   'view'   => ['TEXT', sub { s/,//g; }];
-        process '.vinfo_res',    'res'    => ['TEXT', sub { s/,//g; }];
-        process '.vinfo_mylist', 'mylist' => ['TEXT', sub { s/,//g; }];
+#        process '.vinfo_view',   'view'   => ['TEXT', sub { s/,//g; }];
+#        process '.vinfo_res',    'res'    => ['TEXT', sub { s/,//g; }];
+#        process '.vinfo_mylist', 'mylist' => ['TEXT', sub { s/,//g; }];
 #        process 'img.video_w96', 'title'  => '@alt';
-        process '.vinfo_length', 'length' => 'TEXT';
-        process '.vinfo_posted', 'posted' => 'TEXT';
+#        process '.vinfo_length', 'length' => 'TEXT';
+#        process '.vinfo_posted', 'posted' => 'TEXT';
 #        process 'a.video',       'url'    => '@href';
-        process 'a.video',       'url'    => '@href', 'title' => 'TEXT';
+        process 'a.watch',       'url'    => '@href', 'title' => 'TEXT';
 #        process '.vinfo_title',  'title'  => 'TEXT';
-        process '.vinfo_description', 'description' => 'TEXT';
+#        process '.vinfo_description', 'description' => 'TEXT';
         process '.vinfo_last_res', 'last_res' => 'TEXT';
     };
 };
