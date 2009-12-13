@@ -300,6 +300,10 @@ sub fetch_nicovideo
     logger $logdomain, $err;
     if(!-f $file_song || $timeout > 0)
     {
+        if($timeout > 0)
+        {
+            logger $logdomain, "ERROR: convert timeout\n";
+        }
         logger $logdomain, "ERROR: failed to convert\n";
         return {
             result => { code => -7, text => 'failed to convert' },
