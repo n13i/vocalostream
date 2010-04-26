@@ -9,7 +9,6 @@ use utf8;
 use FindBin qw($Bin);
 use FindBin::libs;
 
-use Net::Twitter;
 use YAML;
 use DBD::SQLite;
 use WWW::NicoVideo::Download;
@@ -34,11 +33,6 @@ my $dbh = DBI->connect(
     '', '', {unicode => 1}
 );
 $dbh->func(5000, 'busy_timeout');
-
-my $twit = Net::Twitter->new(
-    username => $conf->{twitter}->{username},
-    password => $conf->{twitter}->{password},
-);
 
 my $dl = VocaloidFM::Download->new;
 

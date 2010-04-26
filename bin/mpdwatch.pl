@@ -8,7 +8,7 @@ use FindBin::libs;
 
 use DBD::SQLite;
 use Audio::MPD;
-use Net::Twitter;
+use Net::Twitter::Lite;
 use YAML;
 use Encode;
 use DateTime;
@@ -35,10 +35,12 @@ my $mpd = Audio::MPD->new(
 
 &init_mpd;
 
-my $twit = Net::Twitter->new(
-    username => $conf->{twitter}->{username},
-    password => $conf->{twitter}->{password},
+my $twit = Net::Twitter::Lite->new(
+    consumer_key => $conf->{twitter}->{consumer_key},
+    consumer_secret => $conf->{twitter}->{consumer_secret},
 );
+$twit->access_token($conf->{twitter}->{access_token});
+$twit->access_token_secret($conf->{twitter}->{access_token_secret});
 
 my $current_id = -1;
 if(defined(my $song = $mpd->song))
@@ -187,7 +189,7 @@ while($mainloop)
         logger $logdomain, "%s\n", $post;
         if($conf->{twitter}->{post_enable} == 1)
         {
-            $twit->update(encode('utf8', $post));
+            $twit->update($post);
         }
 
         logger $logdomain, "* pos=%d, id=%d, file=%s\n",

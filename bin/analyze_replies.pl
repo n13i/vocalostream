@@ -6,7 +6,6 @@ use utf8;
 use FindBin qw($Bin);
 use FindBin::libs;
 
-use Net::Twitter;
 use YAML;
 use DBD::SQLite;
 
