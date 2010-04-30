@@ -277,7 +277,7 @@ sub add_playlist
             {
                 logger $logdomain, "* %s: status OK\n", $video_id;
             }
-            sleep 3;
+            sleep 1;
 
             # 投稿者名も再取得
             my $username = $dl->get_username($video_id);
