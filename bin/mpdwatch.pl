@@ -187,7 +187,7 @@ while($mainloop)
 
         # "Status is a duplicate."を避けるため
         my $dt_now = DateTime->now(time_zone => $conf->{timezone});
-        $post .= ' [' . $dt_now->strftime('%m%d%H%M') . ']';
+        $post .= $dt_now->strftime(' [%H:%M]');
 
         logger $logdomain, "%s\n", '-' x 40;
         logger $logdomain, "%s\n", $post;
