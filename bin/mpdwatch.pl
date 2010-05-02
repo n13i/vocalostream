@@ -185,6 +185,10 @@ while($mainloop)
             $post = sprintf "\x{266b} %s", $post;
         }
 
+        # "Status is a duplicate."を避けるため
+        my $dt_now = DateTime->now(time_zone => $conf->{timezone});
+        $post .= ' [' . $dt_now->strftime('%m%d%H%M') . ']';
+
         logger $logdomain, "%s\n", '-' x 40;
         logger $logdomain, "%s\n", $post;
         if($conf->{twitter}->{post_enable} == 1)
