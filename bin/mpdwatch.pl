@@ -189,7 +189,14 @@ while($mainloop)
         logger $logdomain, "%s\n", $post;
         if($conf->{twitter}->{post_enable} == 1)
         {
-            $twit->update($post);
+            eval
+            {
+                $twit->update($post);
+            };
+            if($@)
+            {
+                logger $logdomain, "! post error: " . $@ . "\n";
+            }
         }
 
         logger $logdomain, "* pos=%d, id=%d, file=%s\n",
