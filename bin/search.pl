@@ -54,10 +54,17 @@ if($res->is_error || $nv->is_logged_out($res))
 }
 
 my $url = undef;
+my $scraper = undef;
 if($mode eq 'ranking')
 {
     $url = sprintf 'http://www.nicovideo.jp/ranking/mylist/%s/vocaloid',
         $query;
+
+    $scraper = scraper {
+        process 'div.thumb_frm', 'videos[]' => scraper {
+            process 'a.watch', 'url' => '@href', 'title' => 'TEXT';
+        };
+    };
 }
 elsif($mode eq 'tag')
 {
@@ -71,6 +78,12 @@ elsif($mode eq 'tag')
         $url = sprintf 'http://www.nicovideo.jp/tag/%s?page=%d&sort=f',
             uri_escape_utf8($query), $page
     }
+
+    $scraper = scraper {
+        process 'table[summary="videos"] tr', 'videos[]' => scraper {
+            process 'td:nth-child(2) a.vinfo_title', 'url' => '@href', 'title'  => 'TEXT';
+        };
+    };
 }
 else
 {
@@ -85,21 +98,6 @@ if($res->is_error)
     exit 1;
 }
 
-my $scraper = scraper {
-    process 'div.thumb_frm', 'videos[]' => scraper {
-#        process '.vinfo_view',   'view'   => ['TEXT', sub { s/,//g; }];
-#        process '.vinfo_res',    'res'    => ['TEXT', sub { s/,//g; }];
-#        process '.vinfo_mylist', 'mylist' => ['TEXT', sub { s/,//g; }];
-#        process 'img.video_w96', 'title'  => '@alt';
-#        process '.vinfo_length', 'length' => 'TEXT';
-#        process '.vinfo_posted', 'posted' => 'TEXT';
-#        process 'a.video',       'url'    => '@href';
-        process 'a.watch',       'url'    => '@href', 'title' => 'TEXT';
-#        process '.vinfo_title',  'title'  => 'TEXT';
-#        process '.vinfo_description', 'description' => 'TEXT';
-        process '.vinfo_last_res', 'last_res' => 'TEXT';
-    };
-};
 my $r = $scraper->scrape($res->decoded_content, 'http://www.nicovideo.jp/');
 #print Dump($r->{videos});
 
