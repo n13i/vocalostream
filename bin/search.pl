@@ -80,8 +80,8 @@ elsif($mode eq 'tag')
     }
 
     $scraper = scraper {
-        process 'table[summary="videos"] tr', 'videos[]' => scraper {
-            process 'td:nth-child(2) a.vinfo_title', 'url' => '@href', 'title'  => 'TEXT';
+        process 'div.thumb_col_1 table', 'videos[]' => scraper {
+            process 'p.font16 a.watch', 'url' => '@href', 'title'  => 'TEXT';
         };
     };
 }
@@ -103,7 +103,10 @@ my $r = $scraper->scrape($res->decoded_content, 'http://www.nicovideo.jp/');
 
 foreach(@{$r->{videos}})
 {
-    printf "%s|%s\n", $_->{url}, $_->{title};
+    if(defined($_->{url}))
+    {
+        printf "%s|%s\n", $_->{url}, $_->{title};
+    }
 }
 
 exit;
