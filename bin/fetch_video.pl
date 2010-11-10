@@ -36,6 +36,15 @@ $dbh->func(5000, 'busy_timeout');
 
 my $dl = VocaloidFM::Download->new;
 
+# 先に試行回数オーバーのものを削除しておく
+$dbh->begin_work;
+$dbh->do(
+    'DELETE FROM programs WHERE file_id IN ' .
+    '(SELECT id FROM files WHERE filename IS NULL AND try >= 3)'
+);
+$dbh->do('DELETE FROM files WHERE filename IS NULL AND try >= 3');
+$dbh->commit;
+
 my @files = ();
 my $sth = $dbh->prepare(
     'SELECT id, url, try FROM files WHERE filename IS NULL'
@@ -100,14 +109,6 @@ foreach my $f (@files)
     }
 }
 $sth->finish; undef $sth;
-
-$dbh->begin_work;
-$dbh->do(
-    'DELETE FROM programs WHERE file_id IN ' .
-    '(SELECT id FROM files WHERE filename IS NULL AND try >= 3)'
-);
-$dbh->do('DELETE FROM files WHERE filename IS NULL AND try >= 3');
-$dbh->commit;
 
 
 sub fetch_nicovideo
@@ -312,9 +313,18 @@ sub fetch_nicovideo
 
     logger $logdomain, "running VorbisGain ...\n";
     # set VorbisGain tags
-    run [$conf->{cmds}->{vorbisgain}, '-q', $file_song],
-        '>', \$out, '2>', \$err,
-        timeout($conf->{converter}->{vorbisgain_timeout}) or die "$?";
+    eval {
+        run [$conf->{cmds}->{vorbisgain}, '-q', $file_song],
+            '>', \$out, '2>', \$err,
+            timeout($conf->{converter}->{vorbisgain_timeout});
+    };
+    if($@)
+    {
+        logger $logdomain, "ERROR: VorbisGain timeout\n";
+        return {
+            result => { code => -7, text => 'failed to convert' },
+        };
+    }
 
     logger $logdomain, "done.\n";
 
