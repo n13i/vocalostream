@@ -17,7 +17,7 @@ my $conf = load_config;
 
 my $dbh = DBI->connect(
     'dbi:SQLite:dbname=' . $conf->{db},
-    '', '', {unicode => 1}
+    '', '', {sqlite_unicode => 1}
 );
 
 my $type = shift @ARGV || 0;

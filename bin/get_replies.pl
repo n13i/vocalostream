@@ -22,11 +22,11 @@ my $conf = load_config;
 
 my $dbh = DBI->connect(
     'dbi:SQLite:dbname=' . $conf->{db},
-    '', '', {unicode => 1}
+    '', '', {sqlite_unicode => 1}
 );
 my $dbh_tinyurl = DBI->connect(
     'dbi:SQLite:dbname=' . $conf->{tinyurl}->{db},
-    '', '', {unicode => 1}
+    '', '', {sqlite_unicode => 1}
 );
 
 my $twit = Net::Twitter::Lite->new(
@@ -65,15 +65,20 @@ $dbh->begin_work;
 foreach my $r (sort { $a->{id} <=> $b->{id} } @replies)
 {
     my $tinyurl_expr = $conf->{tinyurl}->{expr};
-    my @tinyurls = $r->{text} =~ m{($tinyurl_expr)}sg;
-    foreach(@tinyurls)
-    {
-        my $expanded = &expand_tinyurl($_);                                             if(defined($expanded))
+    my $loop = 5;
+    my @tinyurls = ();
+    do {
+        @tinyurls = $r->{text} =~ m{($tinyurl_expr)}sg;
+        foreach(@tinyurls)
         {
-            logger $logdomain, "  untinyurlize: %s\n", $expanded;
-            $r->{text} =~ s#$_#$expanded#g;
+            my $expanded = &expand_tinyurl($_);
+            if(defined($expanded))
+            {
+                logger $logdomain, "  untinyurlize: %s\n", $expanded;
+                $r->{text} =~ s#$_#$expanded#g;
+            }
         }
-    }
+    } while(--$loop > 0 || $#tinyurls > -1);
 
     logger $logdomain, "%d %s: %s\n",
         $r->{id}, $r->{user}->{screen_name}, $r->{text};
