@@ -90,6 +90,7 @@ else
     die;
 }
 
+$nv->user_agent->timeout(15);
 $res = $nv->user_agent->get($url);
 if($res->is_error)
 {
@@ -97,6 +98,7 @@ if($res->is_error)
     print Dump($res);
     exit 1;
 }
+print Dump($res);
 
 my $r = $scraper->scrape($res->decoded_content, 'http://www.nicovideo.jp/');
 #print Dump($r->{videos});
