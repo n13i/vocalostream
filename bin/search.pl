@@ -17,6 +17,7 @@ use Encode;
 use VocaloidFM;
 
 binmode STDOUT, ':encoding(utf8)';
+binmode STDERR, ':encoding(utf8)';
 
 my $mode = shift @ARGV || die;
 my $query = shift @ARGV || die;
@@ -91,6 +92,7 @@ else
 }
 
 $nv->user_agent->timeout(15);
+print STDERR "loading $url\n";
 $res = $nv->user_agent->get($url);
 if($res->is_error)
 {
