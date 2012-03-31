@@ -79,7 +79,11 @@ foreach my $s (@updates)
         my %tmp;
         foreach(grep(!$tmp{$_}++, @urls))
         {
-            my $url = 'http://www.nicovideo.jp/watch/' . $_;
+            my $url = $_;
+            if($url !~ /^http/)
+            {
+                $url = 'http://www.nicovideo.jp/watch/' . $url;
+            }
             logger $logdomain, "  got video: %s\n", $url;
             push(@{$s->{urls}}, $url);
         }
