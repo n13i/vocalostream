@@ -67,7 +67,7 @@ foreach my $s (@updates)
 
         if(defined($url))
         {
-            push(@{$s->{urls}}, $url);
+            push(@urls, $url);
         }
     }
 
