@@ -194,7 +194,7 @@ sub word_search
     );
     print Dump($row);
     my $url = undef;
-    if(!defined($row))
+    if(defined($row))
     {
         $url = $row->{url};
         logger $logdomain, "[%d] [%s] %s [M:%d]\n",
