@@ -131,6 +131,7 @@ sub word_search
     
     logger $logdomain, "search query = %s\n", $q;
 
+    $dbh->do('DROP TEMPORARY TABLE temp_search');
     my $rc = $dbh->do(
         'CREATE TEMPORARY TABLE temp_search (' .
         '  id      INTEGER PRIMARY KEY,' .
