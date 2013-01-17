@@ -23,6 +23,8 @@ my $dbh = DBI->connect(
 );
 
 my $twit = Net::Twitter->new(
+    api_url => $conf->{twitter}->{api_url},
+    upload_url => $conf->{twitter}->{upload_url},
     username => $conf->{twitter}->{username},
     password => $conf->{twitter}->{password},
 );

@@ -30,6 +30,8 @@ my $dbh_tinyurl = DBI->connect(
 );
 
 my $twit = Net::Twitter::Lite->new(
+    api_url => $conf->{twitter}->{api_url},
+    upload_url => $conf->{twitter}->{upload_url},
     consumer_key => $conf->{twitter}->{consumer_key},
     consumer_secret => $conf->{twitter}->{consumer_secret},
 );
