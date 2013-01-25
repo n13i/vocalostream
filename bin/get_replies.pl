@@ -80,7 +80,7 @@ foreach my $r (sort { $a->{id} <=> $b->{id} } @replies)
                 $r->{text} =~ s#$_#$expanded#g;
             }
         }
-    } while(--$loop > 0 || $#tinyurls > -1);
+    } while(--$loop > 0 && $#tinyurls > -1);
 
     logger $logdomain, "%d %s: %s\n",
         $r->{id}, $r->{user}->{screen_name}, $r->{text};
