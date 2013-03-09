@@ -40,6 +40,7 @@ my $twit = Net::Twitter::Lite->new(
     upload_url => $conf->{twitter}->{upload_url},
     consumer_key => $conf->{twitter}->{consumer_key},
     consumer_secret => $conf->{twitter}->{consumer_secret},
+    legacy_lists_api => 0,
 );
 $twit->access_token($conf->{twitter}->{access_token});
 $twit->access_token_secret($conf->{twitter}->{access_token_secret});
