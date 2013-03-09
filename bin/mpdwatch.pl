@@ -340,11 +340,18 @@ sub add_playlist
 
     logger $logdomain, "* updating MPD database ...\n";
     my $update_time = 0;
-    $mpd->updatedb;
+    eval
+    {
+        $mpd->updatedb;
+    };
+    if($@)
+    {
+        logger $logdomain, "! failed to start updating MPD database: " . $@ . "\n";
+    }
     while(defined($mpd->status->updating_db))
     {
         sleep 1;
-        last if($update_time++ >= 30);
+        last if($update_time++ >= 60);
     }
 
     my $reqinfo = undef;
