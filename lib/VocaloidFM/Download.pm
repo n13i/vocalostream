@@ -225,7 +225,7 @@ sub get_thumbinfo
 
     my $res = $self->{nicovideo}->user_agent->get(
 #        'http://ext.nicovideo.jp/api/getthumbinfo/' . $video_id
-        'http://labs.m2hq.net/vocaloid_fm/api/getthumbinfo.php?v=' . $video_id
+        'http://vocalo.stream.m2hq.net/api/getthumbinfo.php?v=' . $video_id
     );
     if($res->is_error)
     {
