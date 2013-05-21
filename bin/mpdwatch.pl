@@ -199,6 +199,8 @@ while($mainloop)
         eval {
             $vsapi->update_currentsong(
                 {
+                    id => $current_id,
+                    url => $r->{url},
                     title => $r->{title},
                     author => $r->{username},
                     length => $song->time,
