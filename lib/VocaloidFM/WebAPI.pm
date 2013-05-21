@@ -40,17 +40,17 @@ sub update_currentsong
     my $self = shift;
     my $args = shift;
 
-    my $postdata = {};
+    my $postdata = ();
     foreach my $key (%{$args})
     {
-        $postdata->{$key} = encode('utf8', $args->{$key});
+        $postdata{$key} = encode('utf8', $args->{$key});
     }
 
     my $req = HTTP::Request->new(
         POST => $self->{ep} . $self->{actions}->{update_currentsong}
     );
     $req->header('Content-Type' => 'application/json; charset=utf8');
-    $req->content(JSON->new->encode($postdata));
+    $req->content(JSON->new->encode(\$postdata));
     my $res = $self->{lwp}->request($req);
 
     return $res;
