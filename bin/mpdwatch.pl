@@ -197,9 +197,16 @@ while($mainloop)
         }
 
         eval {
+            my $video_id = undef;
+            if($r->{url} =~ m{watch/((?:sm|nm)\d+)$})
+            {
+                $video_id = $1;
+            }
+
             $vsapi->update_currentsong(
                 {
                     id => $current_id,
+                    video_id => $video_id,
                     url => $r->{url},
                     title => $r->{title},
                     author => $r->{username},
