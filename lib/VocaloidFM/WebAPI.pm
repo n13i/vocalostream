@@ -11,6 +11,7 @@ use FindBin::libs;
 
 use LWP::UserAgent;
 use JSON;
+use Encode;
 
 use VocaloidFM;
 
@@ -39,11 +40,17 @@ sub update_currentsong
     my $self = shift;
     my $args = shift;
 
+    my $postdata = {};
+    foreach $key (%{$args})
+    {
+        $postdata->{$key} = encode('utf8', $args->{$key});
+    }
+
     my $req = HTTP::Request->new(
         POST => $self->{ep} . $self->{actions}->{update_currentsong}
     );
-    $req->header('Content-Type' => 'application/json');
-    $req->content(JSON->new->encode($args));
+    $req->header('Content-Type' => 'application/json; charset=utf8');
+    $req->content(JSON->new->encode($postdata));
     my $res = $self->{lwp}->request($req);
 
     return $res;
