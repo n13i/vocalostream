@@ -41,7 +41,7 @@ sub update_currentsong
     my $args = shift;
 
     my %postdata = ();
-    foreach my $key (%{$args})
+    foreach my $key (keys %{$args})
     {
         $postdata{$key} = encode('utf8', $args->{$key});
     }
@@ -50,7 +50,7 @@ sub update_currentsong
         POST => $self->{ep} . $self->{actions}->{update_currentsong}
     );
     $req->header('Content-Type' => 'application/json; charset=utf8');
-    $req->content(JSON->new->encode(\$postdata));
+    $req->content(JSON->new->encode(\%postdata));
     my $res = $self->{lwp}->request($req);
 
     return $res;
