@@ -40,7 +40,7 @@ sub update_currentsong
     my $self = shift;
     my $args = shift;
 
-    my $postdata = ();
+    my %postdata = ();
     foreach my $key (%{$args})
     {
         $postdata{$key} = encode('utf8', $args->{$key});
