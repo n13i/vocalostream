@@ -39,10 +39,10 @@ sub update_currentsong
     my $self = shift;
     my $args = shift;
 
-    my $req => HTTP::Request->new(
+    my $req = HTTP::Request->new(
         POST => $self->{ep} . $self->{actions}->{update_currentsong}
     );
-    $req->content_type('application/json');
+    $req->header('Content-Type' => 'application/json');
     $req->content(JSON->new->encode($args));
     my $res = $self->{lwp}->request($req);
 
