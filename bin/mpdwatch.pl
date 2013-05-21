@@ -16,6 +16,7 @@ use DateTime;
 use VocaloidFM;
 use VocaloidFM::Download;
 use VocaloidFM::Tagger;
+use VocaloidFM::WebAPI;
 
 binmode STDOUT, ':encoding(utf8)';
 
@@ -44,6 +45,8 @@ my $twit = Net::Twitter::Lite->new(
 );
 $twit->access_token($conf->{twitter}->{access_token});
 $twit->access_token_secret($conf->{twitter}->{access_token_secret});
+
+my $vsapi = VocaloidFM::WebAPI->new;
 
 my $current_id = -1;
 if(defined(my $song = $mpd->song))
@@ -151,6 +154,8 @@ while($mainloop)
         $post = sprintf "%s (%d:%02d) %s",
             $post, $min, $sec, $r->{url};
 
+        my $request_comment = undef;
+        my $request_user = undef;
         if(defined($request_info))
         {
             #$post = sprintf "\x{266c} %s : from @%s",
@@ -177,6 +182,9 @@ while($mainloop)
                         $post,
                         $request_info->{user_screen_name},
                         $comment;
+
+                    $request_user = $request_info->{user_screen_name};
+                    $request_comment = $comment;
                 }
             }
 
@@ -186,6 +194,22 @@ while($mainloop)
         else
         {
             $post = sprintf "\x{266b} %s", $post;
+        }
+
+        eval {
+            $vsapi->update_currentsong(
+                {
+                    title => $r->{title},
+                    author => $r->{username},
+                    length => $song->time,
+                    requested_by => $request_user,
+                    request_comment => $request_comment,
+                }
+            );
+        };
+        if($@)
+        {
+            logger $logdomain, "! currentsong update error: " . $@ . "\n";
         }
 
         # "Status is a duplicate."を避けるため

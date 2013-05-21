@@ -1,14 +1,68 @@
 twitter:
+  api_url: 'https://api.twitter.com/1.1'
+  upload_url: 'https://api.twitter.com/1.1'
   username:
   password:
+  post_enable: 1
+  consumer_key:
+  consumer_secret:
+  access_token:
+  access_token_secret:
+
 nicovideo:
   email:
   password:
+
 db: db/icesradio.db
+pname: conf/pname.yaml
+wblist: conf/white_and_black_list.yaml
+
 dirs:
+  data: data
   sources: files/sources
   songs: files/songs
+
 cmds:
   ffmpeg: ffmpeg
   oggenc: oggenc
+  vorbisgain: vorbisgain
+  vorbiscomment: vorbiscomment
+  faad: faad
+  file: file
+
+logfile: log/vocaloid_fm.log
+timezone: +0900
+
+tagcheck:
+  required:
+  ng:
+
+converter:
+  quality: 5
+  timeout: 90
+  vorbisgain_timeout: 30
+
+playlist:
+  random: 1
+  check_interval: 15
+  add_interval: 30
+  statuscheck_interval: 43200
+
+tinyurl:
+  db: db/tinyurl.db
+  expr: 'http://(?:tinyurl\.com|twurl\.nl|is\.gd|bit\.ly|j\.mp|t\.co|goo\.gl)/\w+'
+
+ua: 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.75 Safari/535.7'
+
+mpd:
+  host: localhost
+  port: 6600
+  outputs:
+    - 0
+    - 1
+
+vocast_api:
+  url:
+
+
 # vim: ts=2:filetype=yaml
