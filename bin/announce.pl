@@ -6,7 +6,7 @@ use utf8;
 use FindBin qw($Bin);
 use FindBin::libs;
 
-use Net::Twitter::Lite;
+use Net::Twitter::Lite::WithAPIv1_1;
 use Encode;
 
 use VocaloidFM;
@@ -18,7 +18,7 @@ my $conf = load_config;
 my $post = $ARGV[0] || die;
 $post = decode('utf-8', $post);
 
-my $twit = Net::Twitter::Lite->new(
+my $twit = Net::Twitter::Lite::WithAPIv1_1->new(
     api_url => $conf->{twitter}->{api_url},
     upload_url => $conf->{twitter}->{upload_url},
     consumer_key => $conf->{twitter}->{consumer_key},

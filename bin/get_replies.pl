@@ -6,7 +6,7 @@ use utf8;
 use FindBin qw($Bin);
 use FindBin::libs;
 
-use Net::Twitter::Lite;
+use Net::Twitter::Lite::WithAPIv1_1;
 use YAML;
 use DBD::SQLite;
 use LWP::UserAgent;
@@ -29,7 +29,7 @@ my $dbh_tinyurl = DBI->connect(
     '', '', {sqlite_unicode => 1}
 );
 
-my $twit = Net::Twitter::Lite->new(
+my $twit = Net::Twitter::Lite::WithAPIv1_1->new(
     api_url => $conf->{twitter}->{api_url},
     upload_url => $conf->{twitter}->{upload_url},
     consumer_key => $conf->{twitter}->{consumer_key},

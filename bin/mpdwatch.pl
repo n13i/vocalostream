@@ -8,7 +8,7 @@ use FindBin::libs;
 
 use DBD::SQLite;
 use Audio::MPD;
-use Net::Twitter::Lite;
+use Net::Twitter::Lite::WithAPIv1_1;
 use YAML;
 use Encode;
 use DateTime;
@@ -36,7 +36,7 @@ my $mpd = Audio::MPD->new(
 
 &init_mpd;
 
-my $twit = Net::Twitter::Lite->new(
+my $twit = Net::Twitter::Lite::WithAPIv1_1->new(
     api_url => $conf->{twitter}->{api_url},
     upload_url => $conf->{twitter}->{upload_url},
     consumer_key => $conf->{twitter}->{consumer_key},
